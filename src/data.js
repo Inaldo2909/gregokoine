@@ -31,8 +31,11 @@ export const A = [
 
 // Grafia fonética enviada ao sintetizador de voz em português
 const SPK = {
-  My: "Mi", Ny: "Ni", Ksi: "Csi", Phi: "Fi", Chi: "Qui", Rho: "Rô",
-  Theta: "Têta", Ypsilon: "Ípsilon", Beta: "Bêta", Eta: "Êta", Dzeta: "Dzêta",
+  My: "Mi", Ny: "Ni", Phi: "Fi", Chi: "Qui", Rho: "Rô",
+  Theta: "Têta", Ypsilon: "Ípsilon", Beta: "Bêta", Eta: "Êta",
+  // /ks/, /ps/ e /dz/ não existem em início de sílaba no português: sem uma
+  // vogal de apoio o sintetizador desiste e soletra ("C-S-I").
+  Ksi: "Quissi", Psi: "Pissi", Dzeta: "Dizeta",
 };
 export const spoken = (L) => SPK[L.n] || L.n;
 

@@ -74,3 +74,16 @@ da letra. Se o aparelho não tiver voz portuguesa instalada, o app segue
 funcionando em silêncio.
 
 O progresso mora no `localStorage` do navegador. Limpar os dados do site apaga.
+
+## Publicar no Cloudflare Workers
+
+O arquivo `wrangler.jsonc` já está configurado para servir a pasta `dist` como
+site estático. No painel do Cloudflare, ao conectar o repositório:
+
+- **Build command:** `npm run build`
+- **Deploy command:** `npx wrangler deploy`
+- **Project name:** precisa ser igual ao `name` do `wrangler.jsonc` (`gregokoine`)
+
+Se mudar o nome do projeto no painel, mude também no `wrangler.jsonc`.
+
+Pelo terminal, `npm run deploy` faz build e publicação de uma vez.

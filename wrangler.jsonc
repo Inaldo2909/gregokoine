@@ -1,8 +1,11 @@
 {
+  // Site estático servido pelo Cloudflare Workers (Static Assets).
+  // O nome precisa ser igual ao "Project name" informado no painel.
   "name": "gregokoine",
   "compatibility_date": "2026-09-01",
   "assets": {
     "directory": "./dist",
+    // o app é uma página só: qualquer rota devolve o index.html
     "not_found_handling": "single-page-application"
   }
 }
