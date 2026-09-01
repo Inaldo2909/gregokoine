@@ -1,8 +1,10 @@
-import { TASKS, LESSONS } from "./data";
+import { TASKS, LESSONS, seenLetters } from "./data";
 import { isDone, taskCount, taskFull, taskOpen, nextSpot } from "./store";
 
-export default function Path({ state, onStart, openTask, sheet, closeSheet, toast }) {
+export default function Path({ state, onStart, openTask, sheet, closeSheet, toast, onReview, onStats }) {
   const spot = nextSpot(state);
+  const vistas = seenLetters(state.done);
+  const rodadas = state.reviews.length;
 
   return (
     <section className="view">
@@ -52,7 +54,26 @@ export default function Path({ state, onStart, openTask, sheet, closeSheet, toas
         })}
       </div>
 
-      <p className="dim center">8 tarefas · 3 letras cada · 5 lições por tarefa</p>
+      {vistas.length >= 3 && (
+        <>
+          <h2 className="sec">Revisão geral</h2>
+          <button className="revcard" onClick={onReview}>
+            <span className="ic">↻</span>
+            <span>
+              <b>Revisar as {vistas.length} letras</b>
+              <small>
+                12 questões sorteadas, sempre diferentes. As letras que você erra
+                aparecem com mais frequência.
+              </small>
+            </span>
+          </button>
+          <button className="statslink" onClick={onStats}>
+            Ver desempenho{rodadas ? ` · ${rodadas} ${rodadas === 1 ? "rodada" : "rodadas"}` : ""}
+          </button>
+        </>
+      )}
+
+      <p className="dim center mt">8 tarefas · 3 letras cada · 5 lições por tarefa</p>
 
       {sheet !== null && (
         <>

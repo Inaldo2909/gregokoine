@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { buildLesson, spoken, norm, NAMEALT, LESSONS, TASKS } from "./data";
+import { buildLesson, buildReview, spoken, norm, NAMEALT, LESSONS } from "./data";
 import { falar } from "./speech";
 
-export default function Lesson({ task, lesson, voice, onQuit, onFinish, taskWasFull }) {
-  const [queue, setQueue] = useState(() => buildLesson(task, lesson));
+export default function Lesson({
+  task, lesson, voice, onQuit, onFinish, taskWasFull,
+  review = false, pool = [], stats = {}, onAnswer,
+}) {
+  const [queue, setQueue] = useState(() =>
+    review ? buildReview(pool, stats) : buildLesson(task, lesson));
+
   const [i, setI] = useState(0);
   const [verdict, setVerdict] = useState(null); // { ok, why }
   const [picked, setPicked] = useState(null);
@@ -12,6 +17,8 @@ export default function Lesson({ task, lesson, voice, onQuit, onFinish, taskWasF
   const [errors, setErrors] = useState(0);
   const [over, setOver] = useState(false);
   const inputRef = useRef(null);
+  const totalInicial = useRef(0);
+  if (totalInicial.current === 0 && queue.length) totalInicial.current = queue.length;
 
   const q = queue[i];
   const total = Math.max(queue.length, 1);
@@ -25,6 +32,7 @@ export default function Lesson({ task, lesson, voice, onQuit, onFinish, taskWasF
   }, [i, over]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function judge(ok, why) {
+    if (review) onAnswer?.(q.L.i, ok);
     if (!ok) {
       setErrors((e) => e + 1);
       setQueue((s) => [...s, q]); // erro volta ao fim da fila
@@ -36,7 +44,10 @@ export default function Lesson({ task, lesson, voice, onQuit, onFinish, taskWasF
   function advance() {
     const next = i + 1;
     setVerdict(null); setPicked(null); setTyped(""); setHint(null);
-    if (next >= queue.length) { setOver(true); onFinish(task, lesson, errors); }
+    if (next >= queue.length) {
+      setOver(true);
+      onFinish(review ? { total: totalInicial.current, wrong: errors } : null, task, lesson, errors);
+    }
     else setI(next);
   }
 
@@ -64,6 +75,8 @@ export default function Lesson({ task, lesson, voice, onQuit, onFinish, taskWasF
   }
 
   // ------------------------------------------------------------------ fim
+  if (over && review) return null;
+
   if (over) {
     const full = taskWasFull;
     return (

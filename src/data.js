@@ -176,3 +176,57 @@ export function buildLesson(t, l) {
 
   return l === 0 ? q : shuffle(q);
 }
+
+// ---------------------------------------------------------------------------
+// Revisão geral: rodada avulsa, repetível, com tudo o que o aluno já viu.
+// O sorteio é ponderado pelo histórico de erros — quem erra mais, aparece mais.
+// ---------------------------------------------------------------------------
+
+export function seenLetters(done) {
+  let last = -1;
+  for (let t = 0; t < 8; t++)
+    for (let l = 0; l < 5; l++) if (done[`${t}-${l}`]) last = Math.max(last, t);
+  return last < 0 ? [] : A.slice(0, (last + 1) * 3);
+}
+
+function weightedPick(pool, stats, n) {
+  const bag = [];
+  pool.forEach((L) => {
+    const st = stats[L.i] || { seen: 0, wrong: 0 };
+    // peso base 1, mais 2 por erro acumulado, teto em 7 para não virar obsessão
+    const w = Math.min(7, 1 + st.wrong * 2);
+    for (let k = 0; k < w; k++) bag.push(L);
+  });
+  const out = [];
+  const usadas = new Map();
+  let guard = 0;
+  while (out.length < n && guard++ < n * 40) {
+    const L = bag[Math.floor(Math.random() * bag.length)];
+    const c = usadas.get(L.i) || 0;
+    if (c >= 3) continue;            // nenhuma letra domina a rodada
+    usadas.set(L.i, c + 1);
+    out.push(L);
+  }
+  return out;
+}
+
+export function buildReview(pool, stats = {}, n = 12) {
+  if (!pool.length) return [];
+  const letras = weightedPick(pool, stats, Math.min(n, pool.length * 3));
+  const outras = (L) => A.filter((x) => x.i !== L.i);
+  const tipos = ["nome", "translit", "ouvir", "escrever"];
+
+  return letras.map((L, k) => {
+    const tipo = tipos[k % tipos.length];
+    if (tipo === "nome")
+      return { k: "mc", L, ask: "Qual é o nome desta letra?", show: L.l, a: L.n,
+        opts: shuffle([L.n, ...distractors(outras(L), L, (x) => x.n)]) };
+    if (tipo === "translit")
+      return { k: "mc", L, ask: "Como se translitera?", show: L.l, a: L.t,
+        opts: shuffle([L.t, ...distractors(outras(L), L, (x) => x.t)]) };
+    if (tipo === "ouvir")
+      return { k: "hear", L, ask: "Qual letra você ouviu?", a: L.l,
+        opts: shuffle([L.l, ...distractors(outras(L), L, (x) => x.l)]) };
+    return { k: "type", L, ask: "Escreva o nome desta letra", show: L.l, a: L.n };
+  }).sort(() => Math.random() - 0.5);
+}

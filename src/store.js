@@ -9,6 +9,8 @@ const INITIAL = {
   last: null,      // último dia de estudo, "AAAA-MM-DD"
   voice: true,
   theme: "light",
+  stats: {},       // { indiceDaLetra: { seen, wrong } }
+  reviews: [],     // histórico de rodadas: { d, total, wrong }
 };
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -54,6 +56,33 @@ export function useStore() {
     });
   }, []);
 
+  // registra cada resposta da revisão geral, por letra
+  const recordAnswer = useCallback((letterIndex, ok) => {
+    setState((s) => {
+      const cur = s.stats[letterIndex] || { seen: 0, wrong: 0 };
+      return {
+        ...s,
+        stats: {
+          ...s.stats,
+          [letterIndex]: { seen: cur.seen + 1, wrong: cur.wrong + (ok ? 0 : 1) },
+        },
+      };
+    });
+  }, []);
+
+  // fecha uma rodada de revisão e guarda as últimas 30
+  const recordReview = useCallback((total, wrong) => {
+    setState((s) => ({
+      ...s,
+      xp: s.xp + Math.max(0, (total - wrong) * 2),
+      reviews: [...s.reviews, { d: today(), total, wrong }].slice(-30),
+    }));
+  }, []);
+
+  const clearStats = useCallback(() => {
+    setState((s) => ({ ...s, stats: {}, reviews: [] }));
+  }, []);
+
   const toggle = useCallback((field) => {
     setState((s) => ({ ...s, [field]: !s[field] }));
   }, []);
@@ -62,7 +91,8 @@ export function useStore() {
 
   const reset = useCallback(() => setState({ ...INITIAL }), []);
 
-  return { state, touchDay, completeLesson, toggle, setTheme, reset };
+  return { state, touchDay, completeLesson, recordAnswer, recordReview,
+           clearStats, toggle, setTheme, reset };
 }
 
 // --- consultas derivadas -----------------------------------------------------

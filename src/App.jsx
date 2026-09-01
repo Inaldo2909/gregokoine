@@ -2,15 +2,19 @@ import { useEffect, useState } from "react";
 import Path from "./Path";
 import Reference from "./Reference";
 import Lesson from "./Lesson";
+import Stats from "./Stats";
+import { seenLetters } from "./data";
 import { useStore } from "./store";
 import { falar } from "./speech";
 import "./styles.css";
 
 export default function App() {
-  const { state, touchDay, completeLesson, toggle, setTheme } = useStore();
+  const { state, touchDay, completeLesson, recordAnswer, recordReview, toggle, setTheme } = useStore();
   const [tab, setTab] = useState("trilha");
   const [sheet, setSheet] = useState(null);
-  const [lesson, setLesson] = useState(null);   // { t, l }
+  const [lesson, setLesson] = useState(null);   // { t, l } ou { review: true }
+  const [round, setRound] = useState(null);    // resultado da rodada de revisão
+  const [showStats, setShowStats] = useState(false);
   const [wasFull, setWasFull] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -22,9 +26,10 @@ export default function App() {
 
   // trava a rolagem do fundo enquanto a lição está aberta
   useEffect(() => {
-    document.body.style.overflow = lesson ? "hidden" : "";
+    const travado = lesson || showStats || round;
+    document.body.style.overflow = travado ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
-  }, [lesson]);
+  }, [lesson, showStats, round]);
 
   function start(t, l) {
     setSheet(null);
@@ -33,24 +38,53 @@ export default function App() {
     setLesson({ t, l });
   }
 
-  function finish(t, l, errors) {
+  function startReview() {
+    touchDay();
+    setRound(null);
+    setLesson({ review: true });
+  }
+
+  function finish(resultado, t, l, errors) {
+    if (resultado) {                       // rodada de revisão
+      recordReview(resultado.total, resultado.wrong);
+      setRound(resultado);
+      setLesson(null);
+      return;
+    }
     completeLesson(t, l);
-    // a tarefa fecha quando esta era a última lição pendente
     const willBeFull = [0, 1, 2, 3, 4].every((x) => x === l || state.done[`${t}-${x}`]);
     setWasFull(willBeFull);
   }
 
   if (lesson) {
+    const rev = !!lesson.review;
     return (
       <div className="app">
         <Lesson
-          key={`${lesson.t}-${lesson.l}`}
+          key={rev ? `rev-${Date.now()}` : `${lesson.t}-${lesson.l}`}
           task={lesson.t}
           lesson={lesson.l}
+          review={rev}
+          pool={rev ? seenLetters(state.done) : []}
+          stats={state.stats}
+          onAnswer={recordAnswer}
           voice={state.voice}
           taskWasFull={wasFull}
           onFinish={finish}
           onQuit={() => { setLesson(null); if (window.speechSynthesis) window.speechSynthesis.cancel(); }}
+        />
+      </div>
+    );
+  }
+
+  if (round || showStats) {
+    return (
+      <div className="app">
+        <Stats
+          state={state}
+          round={round}
+          onAgain={round ? () => { setRound(null); startReview(); } : null}
+          onClose={() => { setRound(null); setShowStats(false); }}
         />
       </div>
     );
@@ -83,6 +117,8 @@ export default function App() {
               sheet={sheet}
               closeSheet={() => setSheet(null)}
               toast={setToast}
+              onReview={startReview}
+              onStats={() => setShowStats(true)}
             />
           : <Reference />}
       </main>
