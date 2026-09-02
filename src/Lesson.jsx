@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { buildLesson, buildReview, spoken, norm, NAMEALT, LESSONS } from "./data";
+import { buildLesson, buildReview, buildDecode, spoken, norm, NAMEALT, LESSONS } from "./data";
 import { falar } from "./speech";
+import { buildModuleLesson } from "./modules";
 
 export default function Lesson({
   task, lesson, voice, onQuit, onFinish, taskWasFull,
-  review = false, pool = [], stats = {}, onAnswer,
+  review = false, decode = false, moduleId = null, pool = [], stats = {}, onAnswer,
 }) {
   const [queue, setQueue] = useState(() =>
-    review ? buildReview(pool, stats) : buildLesson(task, lesson));
+    decode ? buildDecode(pool)
+           : review ? buildReview(pool, stats)
+                    : moduleId ? buildModuleLesson(moduleId, task, lesson)
+                               : buildLesson(task, lesson));
 
   const [i, setI] = useState(0);
   const [verdict, setVerdict] = useState(null); // { ok, why }
@@ -26,17 +30,16 @@ export default function Lesson({
   // fala o nome da letra ao abrir cada questão
   useEffect(() => {
     if (!q || over) return;
-    if (q.k === "intro" || q.k === "hear" || q.k === "mc" || q.k === "word")
-      falar(spoken(q.L), voice);
-    if (q.k === "type") setTimeout(() => inputRef.current?.focus(), 250);
+    if (q.L && ["intro", "hear", "mc", "word"].includes(q.k)) falar(spoken(q.L), voice);
+    if (q.k === "type" || q.k === "dec") setTimeout(() => inputRef.current?.focus(), 250);
   }, [i, over]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function judge(ok, why) {
-    if (review) onAnswer?.(q.L.i, ok);
+    if (review && q.L) onAnswer?.(q.L.i, ok);
     if (!ok) {
       setErrors((e) => e + 1);
       setQueue((s) => [...s, q]); // erro volta ao fim da fila
-      falar(spoken(q.L), voice);
+      if (q.L) falar(spoken(q.L), voice);
     }
     setVerdict({ ok, why });
   }
@@ -46,7 +49,9 @@ export default function Lesson({
     setVerdict(null); setPicked(null); setTyped(""); setHint(null);
     if (next >= queue.length) {
       setOver(true);
-      onFinish(review ? { total: totalInicial.current, wrong: errors } : null, task, lesson, errors);
+      onFinish(review || decode
+        ? { total: totalInicial.current, wrong: errors, decode }
+        : null, task, lesson, errors, moduleId);
     }
     else setI(next);
   }
@@ -55,6 +60,14 @@ export default function Lesson({
     if (verdict) return;
     setPicked(option);
     judge(option === q.a, option === q.a ? "" : `Resposta: ${q.a}`);
+  }
+
+  function checkDecoded() {
+    const v = norm(typed);
+    if (!v) return;
+    inputRef.current?.blur();
+    const ok = v === norm(q.a);
+    judge(ok, ok ? "" : `A palavra é “${q.a}”`);
   }
 
   function checkTyped() {
@@ -75,7 +88,7 @@ export default function Lesson({
   }
 
   // ------------------------------------------------------------------ fim
-  if (over && review) return null;
+  if (over && (review || decode)) return null;
 
   if (over) {
     const full = taskWasFull;
@@ -163,16 +176,47 @@ export default function Lesson({
     );
   }
 
+  if (q.k === "gintro") {
+    body = (
+      <div className="big">
+        <div className="g gform">{q.it.f}</div>
+        <div className="nm">{q.it.a}</div>
+        {q.it.n && <div className="dim gnota">{q.it.n}</div>}
+      </div>
+    );
+  }
+
+  if (q.k === "dec") {
+    body = (
+      <>
+        <div className="ask">{q.ask}</div>
+        <p className="hint tight">
+          Uma palavra em português escrita com letras gregas. Leia letra por letra.
+        </p>
+        <div className="big small"><div className="g decw">{q.show}</div></div>
+        <input
+          ref={inputRef} className="tin" value={typed} disabled={!!verdict}
+          onChange={(e) => setTyped(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") checkDecoded(); }}
+          placeholder="a palavra em português"
+          autoComplete="off" autoCorrect="off" spellCheck="false"
+        />
+        <p className="hint">Acento não é avaliado.</p>
+      </>
+    );
+  }
+
   if (q.k === "mc" || q.k === "word") {
     body = (
       <>
         <div className="ask">{q.ask}</div>
         {q.show && (
           <div className="big small">
-            <div className="g" onClick={() => falar(spoken(q.L), voice)}>{q.show}</div>
+            <div className="g" onClick={() => q.L && falar(spoken(q.L), voice)}>{q.show}</div>
           </div>
         )}
-        <Options q={q} picked={picked} verdict={verdict} choose={choose} />
+        {q.txt && <div className="big small"><div className="txt">{q.txt}</div></div>}
+        <Options q={q} picked={picked} verdict={verdict} choose={choose} greek={q.greekOpts} />
       </>
     );
   }
@@ -185,18 +229,23 @@ export default function Lesson({
         <div className={"verd " + (verdict.ok ? "ok" : "bad")}>
           {verdict.ok ? "Certo!" : "Quase lá"}
         </div>
-        <div className="why">{verdict.ok ? `${q.L.n} · ${q.L.som}` : verdict.why}</div>
+        <div className="why">
+          {verdict.ok ? (q.L ? `${q.L.n} · ${q.L.som}` : q.nota || q.a) : verdict.why}
+        </div>
         <button className={"go " + (verdict.ok ? "okb" : "badb")} onClick={advance}>
           Continuar
         </button>
       </div>
     );
-  } else if (q.k === "intro") {
+  } else if (q.k === "intro" || q.k === "gintro") {
     foot = <div className="foot"><button className="go" onClick={advance}>Continuar</button></div>;
-  } else if (q.k === "type") {
+  } else if (q.k === "type" || q.k === "dec") {
     foot = (
       <div className="foot">
-        <button className={"go" + (typed.trim() ? "" : " mute")} onClick={checkTyped}>
+        <button
+          className={"go" + (typed.trim() ? "" : " mute")}
+          onClick={q.k === "dec" ? checkDecoded : checkTyped}
+        >
           Conferir
         </button>
       </div>
@@ -217,11 +266,11 @@ export default function Lesson({
   );
 }
 
-function Options({ q, picked, verdict, choose, glyph }) {
+function Options({ q, picked, verdict, choose, glyph, greek }) {
   return (
     <div className="opts">
       {q.opts.map((o) => {
-        let cls = "opt" + (glyph ? " gl" : "");
+        let cls = "opt" + (glyph ? " gl" : "") + (greek ? " gk" : "");
         if (verdict) {
           if (o === q.a) cls += " right";
           else if (o === picked) cls += " wrong";

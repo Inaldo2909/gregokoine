@@ -230,3 +230,56 @@ export function buildReview(pool, stats = {}, n = 12) {
     return { k: "type", L, ask: "Escreva o nome desta letra", show: L.l, a: L.n };
   }).sort(() => Math.random() - 0.5);
 }
+
+// ---------------------------------------------------------------------------
+// Decifrar: palavras em português escritas com letras gregas.
+// Exercício usado em aula (Unidade I, "Treinamento") — força a leitura do
+// alfabeto sem depender de saber grego.
+// ---------------------------------------------------------------------------
+
+export const PTWORDS = [
+  // formadas só com as letras das primeiras tarefas (α…μ)
+  ["καμα","cama"], ["μαλα","mala"], ["βαλα","bala"], ["λαμα","lama"],
+  ["καλμα","calma"], ["δια","dia"], ["μελ","mel"], ["μεδιδα","medida"],
+  ["καμαδα","camada"], ["καβιδε","cabide"], ["γεμα","gema"], ["λιμα","lima"],
+  ["βελα","vela"], ["ιδεια","ideia"], ["αλδεια","aldeia"], ["μαγια","magia"],
+  ["βαλε","vale"], ["καλδα","calda"],
+  // a partir da tarefa 5, com ν ξ ο
+  ["μοδα","moda"], ["βολα","bola"], ["γολο","golo"], ["λιμαο","limão"],
+  ["μενινα","menina"], ["κανela",""], ["ανel",""], ["μολδε","molde"],
+  ["δομινο","dominó"], ["μοεδα","moeda"], ["κανοa",""], ["βαγον","vagão"],
+  // tarefas 6 a 8, com π ρ σ τ υ φ χ ψ ω
+  ["πατο","pato"], ["γατο","gato"], ["δαδο","dado"], ["μεσα","mesa"],
+  ["κασα","casa"], ["ροσα","rosa"], ["δεδο","dedo"], ["μοτο","moto"],
+  ["φοτο","foto"], ["σοπα","sopa"], ["ρατο","rato"], ["σολ","sol"],
+  ["μαρ","mar"], ["παπελ","papel"], ["τοματε","tomate"], ["σινεμα","cinema"],
+  ["τελεφονε","telefone"], ["σαπατο","sapato"], ["ελεφαντε","elefante"],
+  ["λιβρο","livro"], ["βασο","vaso"], ["πεντε","pente"], ["ναριζ","nariz"],
+  ["σινο","sino"], ["μαπα","mapa"], ["πιανο","piano"], ["καφε","café"],
+  ["πιποκα","pipoca"], ["καμισα","camisa"], ["ταπετε","tapete"],
+  ["φακα","faca"], ["βαρκο","barco"], ["πορτα","porta"], ["κανετα","caneta"],
+  ["εσκολα","escola"], ["σαλα","sala"], ["μουσικα","música"],
+  ["παλαβρα","palavra"], ["βανανα","banana"],
+].filter(([, pt]) => pt);
+
+// índice de cada letra grega em A, para saber quais letras uma palavra exige
+const IDX = {};
+A.forEach((L) => { IDX[L.l] = L.i; });
+IDX["ς"] = 17;  // sigma final
+
+export function wordLetters(grego) {
+  return [...new Set([...grego].map((c) => IDX[c]).filter((x) => x !== undefined))];
+}
+
+// só entram palavras cujas letras o aluno já viu na trilha
+export function decodable(pool) {
+  const vistos = new Set(pool.map((L) => L.i));
+  return PTWORDS.filter(([g]) => wordLetters(g).every((i) => vistos.has(i)));
+}
+
+export function buildDecode(pool, n = 10) {
+  const disponiveis = decodable(pool);
+  return shuffle(disponiveis).slice(0, n).map(([g, pt]) => ({
+    k: "dec", show: g, a: pt, ask: "Que palavra está escrita aqui?",
+  }));
+}

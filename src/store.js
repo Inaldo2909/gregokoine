@@ -9,6 +9,8 @@ const INITIAL = {
   last: null,      // último dia de estudo, "AAAA-MM-DD"
   voice: true,
   theme: "light",
+  free: true,      // tudo liberado; desligue para seguir a ordem das lições
+  dev: null,       // último devocional concluído: { d: "AAAA-MM-DD", idx }
   stats: {},       // { indiceDaLetra: { seen, wrong } }
   reviews: [],     // histórico de rodadas: { d, total, wrong }
 };
@@ -48,9 +50,9 @@ export function useStore() {
     });
   }, []);
 
-  const completeLesson = useCallback((t, l) => {
+  const completeLesson = useCallback((t, l, moduleId) => {
     setState((s) => {
-      const key = `${t}-${l}`;
+      const key = moduleId ? `${moduleId}:${t}-${l}` : `${t}-${l}`;
       const first = !s.done[key];
       return { ...s, done: { ...s.done, [key]: true }, xp: s.xp + (first ? 15 : 5) };
     });
@@ -79,6 +81,33 @@ export function useStore() {
     }));
   }, []);
 
+  // exporta o progresso como um código único, para levar entre aparelhos e origens
+  const exportJSON = useCallback(() => {
+    const payload = { v: 1, at: new Date().toISOString(), state };
+    const texto = JSON.stringify(payload);
+    // base64 seguro para UTF-8 (o grego dos nomes não sobrevive ao btoa cru)
+    return "KOINE1:" + btoa(unescape(encodeURIComponent(texto)));
+  }, [state]);
+
+  // importa um código gerado acima; devolve mensagem de erro ou null se deu certo
+  const importJSON = useCallback((codigo) => {
+    try {
+      const limpo = codigo.trim().replace(/\s/g, "");
+      if (!limpo.startsWith("KOINE1:")) return "Código não reconhecido.";
+      const texto = decodeURIComponent(escape(atob(limpo.slice(7))));
+      const { state: novo } = JSON.parse(texto);
+      if (!novo || typeof novo.done !== "object") return "Código incompleto ou corrompido.";
+      setState({ ...INITIAL, ...novo });
+      return null;
+    } catch {
+      return "Não consegui ler esse código.";
+    }
+  }, []);
+
+  const doneDevocional = useCallback((idx) => {
+    setState((s) => ({ ...s, dev: { d: today(), idx }, xp: s.xp + 10 }));
+  }, []);
+
   const clearStats = useCallback(() => {
     setState((s) => ({ ...s, stats: {}, reviews: [] }));
   }, []);
@@ -92,15 +121,27 @@ export function useStore() {
   const reset = useCallback(() => setState({ ...INITIAL }), []);
 
   return { state, touchDay, completeLesson, recordAnswer, recordReview,
-           clearStats, toggle, setTheme, reset };
+           clearStats, doneDevocional, exportJSON, importJSON, toggle, setTheme, reset };
 }
 
 // --- consultas derivadas -----------------------------------------------------
 
 export const isDone = (s, t, l) => !!s.done[`${t}-${l}`];
+
+// módulos genéricos usam chave prefixada, para não colidir com o alfabeto
+export const mDone  = (s, id, t, l) => !!s.done[`${id}:${t}-${l}`];
+export const mCount = (s, id, t) => [0, 1, 2, 3].filter((l) => mDone(s, id, t, l)).length;
+export const mFull  = (s, id, t) => mCount(s, id, t) === 4;
+export const mOpen  = (s, id, t) => s.free || t === 0 || mFull(s, id, t - 1);
+export function mNext(s, id, nTasks) {
+  for (let t = 0; t < nTasks; t++)
+    for (let l = 0; l < 4; l++) if (!mDone(s, id, t, l)) return [t, l];
+  return null;
+}
 export const taskCount = (s, t) => [0, 1, 2, 3, 4].filter((l) => isDone(s, t, l)).length;
 export const taskFull = (s, t) => taskCount(s, t) === 5;
-export const taskOpen = (s, t) => t === 0 || taskFull(s, t - 1);
+export const taskOpen = (s, t) => s.free || t === 0 || taskFull(s, t - 1);
+export const lessonOpen = (s, t, l) => s.free || l === 0 || isDone(s, t, l - 1);
 
 export function nextSpot(s) {
   for (let t = 0; t < 8; t++)

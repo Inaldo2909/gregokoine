@@ -18,10 +18,103 @@ export default function Reference() {
   return (
     <section className="view">
       <div className="seg">
-        {[["sons","Sons"],["gram","Gramática"],["lex","Léxico"]].map(([k, label]) => (
+        {[["hist","História"],["sons","Sons"],["gram","Gramática"],["lex","Léxico"]].map(([k, label]) => (
           <button key={k} className={sub === k ? "on" : ""} onClick={() => setSub(k)}>{label}</button>
         ))}
       </div>
+
+      {sub === "hist" && (
+        <>
+          <h2 className="sec">Evolução do idioma grego</h2>
+          <div className="tl">
+            {[
+              ["1300 a.C.", "Minoico e micênico",
+               "Linear A, do período minoico, segue sem decifração. O Linear B, micênico, já foi decifrado — é grego, escrito séculos antes do alfabeto."],
+              ["800 a.C.", "Arcaico",
+               "Surge o alfabeto, adaptado do fenício com o acréscimo das vogais. É a língua de Homero e Hesíodo."],
+              ["500 a.C.", "Clássico",
+               "Predomina o dialeto ático, de Atenas. Sócrates, Platão, Aristóteles e as tragédias."],
+              ["300 a.C. – 300 d.C.", "Koiné",
+               "O grego comum do império helenístico. É o grego do Novo Testamento e da Septuaginta — o que este app ensina."],
+              ["até 1453 d.C.", "Bizantino",
+               "Do império do Oriente até a queda de Constantinopla."],
+              ["hoje", "Grego moderno",
+               "Pronúncia iotacista, em que várias vogais e ditongos convergiram para o som de “i”. É por isso que a voz do celular lê o grego de forma diferente da que se estuda aqui."],
+            ].map(([quando, nome, texto]) => (
+              <div className="tlrow" key={nome}>
+                <div className="tlwhen">{quando}</div>
+                <div className="tlbody">
+                  <b>{nome}</b>
+                  <p className="dim">{texto}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <h2 className="sec">De onde veio o alfabeto</h2>
+          <div className="card">
+            <p className="dim" style={{ color: "var(--text)", fontSize: "14.5px" }}>
+              Hieróglifos egípcios influenciaram o proto-cananeu, que influenciou o
+              alfabeto fenício por volta de 1500 a.C. No século VIII a.C. os gregos
+              adotaram o alfabeto fenício <b>acrescentando as vogais</b> — os fenícios
+              escreviam só consoantes. Nos séculos VII e VI a.C. os romanos adotaram o
+              alfabeto grego com modificações, e daí vem o alfabeto que você está lendo
+              agora. No Oriente, o grego bizantino deu origem ao cirílico, levado aos
+              povos eslavos por Cirilo e Metódio.
+            </p>
+          </div>
+
+          <h2 className="sec">Palavras gregas no português</h2>
+          <p className="dim">
+            A aspiração áspera vira “h” quando a palavra atravessa para o português.
+          </p>
+          <div className="card">
+            <table><tbody>
+              <tr><th>Português</th><th>Do grego</th></tr>
+              <tr><td>hora</td><td className="dim"><span className="gr">ὥρα</span> — hora</td></tr>
+              <tr><td>hipopótamo</td><td className="dim">cavalo + rio</td></tr>
+              <tr><td>hipódromo</td><td className="dim">cavalo + percurso</td></tr>
+              <tr><td>hipertrofia</td><td className="dim">excesso + crescimento</td></tr>
+              <tr><td>hematologia</td><td className="dim">sangue + estudo</td></tr>
+              <tr><td>heliocêntrico</td><td className="dim">sol + centro</td></tr>
+              <tr><td>psicossomático</td><td className="dim">alma + corpo</td></tr>
+              <tr><td>teologia</td><td className="dim">Deus + estudo</td></tr>
+              <tr><td>Mesopotâmia</td><td className="dim">entre + rios</td></tr>
+            </tbody></table>
+          </div>
+
+          <h2 className="sec">Notas de exegese</h2>
+          <div className="card">
+            <b><span className="gr">λόγος</span> e <span className="gr">ῥῆμα</span></b>
+            <p className="dim mt-s">
+              Não há base no texto bíblico para a distinção corrente de que
+              <span className="gr"> ῥῆμα </span> seria “palavra revelada” e
+              <span className="gr"> λόγος </span> não. A Septuaginta traduz a mesma
+              palavra hebraica pelas duas indistintamente. O campo semântico de
+              <span className="gr"> λόγος </span> é largo: fala, razão, argumento,
+              narrativa, doutrina, explicação.
+            </p>
+          </div>
+          <div className="card">
+            <b><span className="gr">κύριος</span> em 1Co 12.3</b>
+            <p className="dim mt-s">
+              A Septuaginta usa <span className="gr">κύριος</span> para verter o
+              Tetragrama, o nome sagrado. É o peso dessa escolha que está por trás da
+              afirmação de que ninguém confessa Jesus como <span className="gr">κύριος</span> senão
+              pelo Espírito.
+            </p>
+          </div>
+          <div className="card">
+            <b>Júnia em Rm 16.7</b>
+            <p className="dim mt-s">
+              No acusativo, masculino e feminino do nome coincidem — a morfologia
+              sozinha não decide. Júnia era nome comum entre mulheres romanas e quase
+              inexistente entre homens; João Crisóstomo, no século IV, a lia como mulher.
+              A leitura masculina só se firma a partir do século XIII.
+            </p>
+          </div>
+        </>
+      )}
 
       {sub === "sons" && (
         <>
