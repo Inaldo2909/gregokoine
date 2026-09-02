@@ -135,8 +135,6 @@ export default function App() {
               onDevocional={() => { touchDay(); setShowDev(true); }}
               onStats={() => setShowStats(true)}
               onBackup={() => setShowBackup(true)}
-              onToggleFree={() => { toggle("free");
-                setToast(state.free ? "Modo livre desligado" : "Modo livre ligado"); }}
             />
           )}
       </main>

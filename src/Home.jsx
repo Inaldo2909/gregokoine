@@ -16,7 +16,7 @@ function progressoModulo(state, id) {
   return [feitas, n * 4];
 }
 
-export default function Home({ state, onOpenModule, onStart, onReview, onDecode, onDevocional, onStats, onToggleFree, onBackup }) {
+export default function Home({ state, onOpenModule, onStart, onReview, onDecode, onDevocional, onStats, onBackup }) {
   const [feitasAlf, totAlf] = progressoAlfabeto(state);
   const spot = nextSpot(state);
   const vistas = seenLetters(state.done);
@@ -131,10 +131,6 @@ export default function Home({ state, onOpenModule, onStart, onReview, onDecode,
         Ver desempenho{rodadas ? ` · ${rodadas} ${rodadas === 1 ? "rodada" : "rodadas"}` : ""}
       </button>
       <button className="statslink" onClick={onBackup}>Salvar ou restaurar progresso</button>
-
-      <button className={"freebtn" + (state.free ? " on" : "")} onClick={onToggleFree}>
-        {state.free ? "Tudo liberado — toque para seguir a ordem" : "Seguindo a ordem das lições — toque para liberar tudo"}
-      </button>
     </section>
   );
 }
