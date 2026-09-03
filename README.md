@@ -87,3 +87,26 @@ site estático. No painel do Cloudflare, ao conectar o repositório:
 Se mudar o nome do projeto no painel, mude também no `wrangler.jsonc`.
 
 Pelo terminal, `npm run deploy` faz build e publicação de uma vez.
+
+## Texto bíblico
+
+A aba Novo Testamento usa o **SBL Greek New Testament (SBLGNT)**, © 2010 Society
+of Biblical Literature e Logos Bible Software, sob licença Creative Commons
+Attribution 4.0 (ver `LICENSE-SBLGNT.txt`). A atribuição aparece no rodapé da aba,
+como a licença exige.
+
+A análise morfológica vem do **MorphGNT: SBLGNT Edition**, ed. J. K. Tauber,
+sob licença CC BY-SA 3.0 (ver `LICENSE-MorphGNT.md`). Ela fornece lema, classe
+gramatical e análise de cada uma das 137.554 palavras do NT.
+
+O **aparato crítico do SBLGNT** traz 6.934 unidades de variação em 4.468
+versículos, mostrando onde o texto adotado difere de Westcott-Hort, Tregelles,
+Nestle-Aland 28 e Robinson-Pierpont.
+
+Os dados vivem em `src/nt.json` (texto, 1,7 MB), `src/morf.json` (morfologia,
+1,1 MB) e `src/aparato.json` (variantes, 461 KB), carregados por `import()` dinâmico. Viram pacotes separados que só baixam
+quando o usuário abre a aba — o carregamento inicial do app não muda.
+
+As glosas em português cobrem os 300 lemas mais frequentes, que correspondem a
+79% das ocorrências do texto. Para ampliar, basta acrescentar entradas em
+`GLOSAS`, no arquivo que gerou `morf.json`.

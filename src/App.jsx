@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Home from "./Home";
 import Track from "./Track";
 import Reference from "./Reference";
+import Biblia from "./Biblia";
 import Lesson from "./Lesson";
 import Stats from "./Stats";
 import Backup from "./Backup";
@@ -108,7 +109,7 @@ export default function App() {
     <div className="app">
       <header>
         <div className="brand"><span className="mk">Κ</span>
-          <h1>{tab === "trilha" ? "Estudar" : "Consulta"}</h1></div>
+          <h1>{{ trilha: "Estudar", biblia: "Novo Testamento", consulta: "Consulta" }[tab]}</h1></div>
         <div className="hb">
           <span className="fire">🔥 {state.streak || 0}</span>
           <button className={"icon" + (state.voice ? "" : " off")} aria-label="Voz"
@@ -122,6 +123,7 @@ export default function App() {
 
       <main>
         {tab === "consulta" ? <Reference />
+          : tab === "biblia" ? <Biblia />
           : modulo ? (
             <Track state={state} moduleId={modulo} onStart={start}
                    onBack={() => setModulo(null)} toast={setToast} />
@@ -139,10 +141,13 @@ export default function App() {
           )}
       </main>
 
-      <nav>
+      <nav className="three">
         <button className={tab === "trilha" ? "on" : ""}
           onClick={() => { setTab("trilha"); setModulo(null); }}>
           <span className="g">Α</span><span className="l">Estudar</span>
+        </button>
+        <button className={tab === "biblia" ? "on" : ""} onClick={() => setTab("biblia")}>
+          <span className="g">ΙΧΘΥΣ</span><span className="l">Novo Testamento</span>
         </button>
         <button className={tab === "consulta" ? "on" : ""} onClick={() => setTab("consulta")}>
           <span className="g">λ</span><span className="l">Consulta</span>

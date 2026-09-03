@@ -371,3 +371,73 @@ nav button.on{color:var(--accent)}
 .devwhy.ok b{color:var(--ok)}
 .devwhy.bad b{color:var(--no)}
 .devwhy p{margin:0;font-size:13.5px;line-height:1.5;color:var(--muted)}
+
+/* --- Novo Testamento -------------------------------------------------------- */
+nav.three{grid-template-columns:repeat(3,1fr)}
+nav.three button .g{font-size:15px}
+nav.three button:first-child .g{font-size:19px}
+nav.three button:last-child .g{font-size:19px}
+nav button .l{font-size:9.5px;text-align:center;padding:0 2px}
+
+.books{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.book{background:var(--card);border:1px solid var(--hair);border-radius:14px;
+  padding:13px 12px;text-align:left}
+.book:active{transform:scale(.97)}
+.book b{display:block;font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.book small{color:var(--muted);font-size:11.5px}
+
+.caps{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.capbtn{aspect-ratio:1;border-radius:12px;background:var(--card);border:1px solid var(--hair);
+  font-size:14px;font-weight:700;display:grid;place-items:center}
+.capbtn:active{background:var(--accent);color:#fff}
+
+.chapter{margin-top:6px}
+.verse{font-family:var(--greek);font-size:18px;line-height:1.85;margin:0 0 14px;text-align:justify}
+.vnum{font-family:var(--ui);font-size:10.5px;font-weight:800;color:var(--accent-ink);
+  vertical-align:super;margin-right:5px}
+.vw{cursor:pointer;border-radius:3px}
+.vw.known{border-bottom:1.5px solid var(--accent-dim)}
+.vw:active{background:var(--accent-dim)}
+
+.navcap{display:flex;gap:8px;margin-top:8px}
+.navcap .btn{margin-top:0}
+.wordbig{font-size:34px;text-align:center;margin:4px 0 10px}
+.wordmean{text-align:center;font-size:17px;font-weight:650;margin:0 0 6px}
+.credito{margin-top:22px;padding-top:14px;border-top:1px solid var(--hair);
+  font-size:11px;color:var(--muted);line-height:1.5}
+
+/* --- informação de palavra -------------------------------------------------- */
+.wi-tit{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:12px}
+.wi-forma{text-align:center;margin-bottom:18px}
+.wi-forma .gr{display:block;font-size:36px;line-height:1.2}
+.wi-forma i{color:var(--muted);font-size:14px}
+.wi-linha{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--hair);font-size:14.5px}
+.wi-rot{min-width:88px;font-size:11px;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--muted);font-weight:700;padding-top:3px}
+.wi-val{flex:1}
+.wi-val .gr{font-size:19px}
+.wi-val i{color:var(--muted);font-size:13.5px;margin-left:4px}
+.wi-glosa{display:block;margin-top:3px;font-size:14px}
+.wi-morf{display:flex;flex-wrap:wrap;gap:5px}
+.wi-tag{background:var(--accent-dim);color:var(--accent-ink);border-radius:7px;
+  padding:3px 9px;font-size:12.5px;font-weight:650}
+.wi-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:18px}
+.wi-arrow{width:42px;height:42px;border-radius:50%;background:var(--card2);
+  display:grid;place-items:center;font-size:19px;color:var(--accent-ink);flex:none}
+.wi-arrow:disabled{opacity:.3}
+.wi-ctx{flex:1;text-align:center;font-size:19px}
+
+/* --- aparato crítico -------------------------------------------------------- */
+.apmark{font-family:var(--ui);font-size:9px;color:var(--accent);vertical-align:super;
+  margin-right:5px;padding:2px 3px}
+.apmark:active{opacity:.5}
+.apunit{background:var(--card);border:1px solid var(--hair);border-radius:14px;
+  padding:12px;margin-bottom:9px}
+.apside{display:flex;gap:9px;align-items:flex-start;padding:5px 0}
+.apside .gr{font-size:16px;line-height:1.45;flex:1}
+.apbadge{font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--card2);color:var(--muted);border-radius:6px;padding:3px 7px;flex:none;margin-top:2px}
+.apbadge.adotada{background:var(--accent-dim);color:var(--accent-ink)}
+.apsigla{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--hair);font-size:13px}
+.apsigla b{min-width:52px;color:var(--accent-ink);font-weight:800}
+.apsigla span{color:var(--muted);flex:1}
