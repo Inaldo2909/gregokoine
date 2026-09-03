@@ -7,6 +7,9 @@ import Lesson from "./Lesson";
 import Stats from "./Stats";
 import Backup from "./Backup";
 import Devocional from "./Devocional";
+import Analise from "./Analise";
+import { MODULES } from "./modules";
+import { useMemo } from "react";
 import { useStore } from "./store";
 import { seenLetters } from "./data";
 import { falar } from "./speech";
@@ -24,6 +27,7 @@ export default function App() {
   const [showStats, setShowStats] = useState(false);
   const [showBackup, setShowBackup] = useState(false);
   const [showDev, setShowDev] = useState(false);
+  const [showAnalise, setShowAnalise] = useState(false);
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
@@ -37,6 +41,18 @@ export default function App() {
     document.body.style.overflow = travado ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [lesson, showStats, round]);
+
+  // itens das tarefas já iniciadas: alimentam a revisão e marcam o texto bíblico
+  const estudadosItens = useMemo(() => {
+    const out = [];
+    for (const [id, m] of Object.entries(MODULES))
+      m.tasks.forEach((t, ti) => {
+        if ([0, 1, 2, 3].some((l) => state.done[`${id}:${ti}-${l}`])) out.push(...t.items);
+      });
+    return out;
+  }, [state.done]);
+  const lemasEstudados = useMemo(
+    () => new Set(estudadosItens.map((i) => i.f)), [estudadosItens]);
 
   function start(id, t, l) { touchDay(); setWasFull(false); setLesson({ id, t, l }); }
   function startReview() { touchDay(); setRound(null); setLesson({ review: true }); }
@@ -69,6 +85,7 @@ export default function App() {
           decode={dec}
           pool={rev || dec ? seenLetters(state.done) : []}
           stats={state.stats}
+          itens={rev ? estudadosItens : []}
           onAnswer={recordAnswer}
           voice={state.voice}
           taskWasFull={wasFull}
@@ -88,6 +105,14 @@ export default function App() {
           onDone={doneDevocional}
           onClose={() => setShowDev(false)}
         />
+      </div>
+    );
+  }
+
+  if (showAnalise) {
+    return (
+      <div className="app">
+        <Analise voice={state.voice} onClose={() => setShowAnalise(false)} />
       </div>
     );
   }
@@ -123,7 +148,7 @@ export default function App() {
 
       <main>
         {tab === "consulta" ? <Reference />
-          : tab === "biblia" ? <Biblia />
+          : tab === "biblia" ? <Biblia voice={state.voice} estudados={lemasEstudados} />
           : modulo ? (
             <Track state={state} moduleId={modulo} onStart={start}
                    onBack={() => setModulo(null)} toast={setToast} />
@@ -135,6 +160,8 @@ export default function App() {
               onReview={startReview}
               onDecode={startDecode}
               onDevocional={() => { touchDay(); setShowDev(true); }}
+              onAnalise={() => { touchDay(); setShowAnalise(true); }}
+              palavrasEstudadas={lemasEstudados.size}
               onStats={() => setShowStats(true)}
               onBackup={() => setShowBackup(true)}
             />

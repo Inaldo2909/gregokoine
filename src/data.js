@@ -210,13 +210,35 @@ function weightedPick(pool, stats, n) {
   return out;
 }
 
-export function buildReview(pool, stats = {}, n = 12) {
-  if (!pool.length) return [];
-  const letras = weightedPick(pool, stats, Math.min(n, pool.length * 3));
+export function buildReview(pool, stats = {}, n = 12, itens = []) {
+  if (!pool.length && !itens.length) return [];
+  const fatia = itens.length ? Math.ceil(n / 2) : n;
+  const letras = pool.length ? weightedPick(pool, stats, Math.min(fatia, pool.length * 3)) : [];
   const outras = (L) => A.filter((x) => x.i !== L.i);
   const tipos = ["nome", "translit", "ouvir", "escrever"];
 
-  return letras.map((L, k) => {
+  // palavras dos módulos já estudados entram na mesma rodada
+  const pesoItem = (it) => {
+    const st = stats["M:" + it.f] || { wrong: 0 };
+    return Math.min(7, 1 + st.wrong * 2);
+  };
+  const sacola = [];
+  itens.forEach((it) => { for (let k = 0; k < pesoItem(it); k++) sacola.push(it); });
+  const escolhidos = [];
+  const usados = new Set();
+  let guarda = 0;
+  while (escolhidos.length < n - letras.length && sacola.length && guarda++ < n * 40) {
+    const it = sacola[Math.floor(Math.random() * sacola.length)];
+    if (usados.has(it.f)) continue;
+    usados.add(it.f);
+    escolhidos.push(it);
+  }
+  const doVocab = escolhidos.map((it) => ({
+    k: "mc", it, ask: "O que significa esta palavra?", show: it.f, a: it.a, nota: it.n,
+    opts: shuffle([it.a, ...pick(itens.filter((x) => x.a !== it.a), 3).map((x) => x.a)]),
+  }));
+
+  const daLetra = letras.map((L, k) => {
     const tipo = tipos[k % tipos.length];
     if (tipo === "nome")
       return { k: "mc", L, ask: "Qual é o nome desta letra?", show: L.l, a: L.n,
@@ -228,7 +250,9 @@ export function buildReview(pool, stats = {}, n = 12) {
       return { k: "hear", L, ask: "Qual letra você ouviu?", a: L.l,
         opts: shuffle([L.l, ...distractors(outras(L), L, (x) => x.l)]) };
     return { k: "type", L, ask: "Escreva o nome desta letra", show: L.l, a: L.n };
-  }).sort(() => Math.random() - 0.5);
+  });
+
+  return [...daLetra, ...doVocab].sort(() => Math.random() - 0.5);
 }
 
 // ---------------------------------------------------------------------------

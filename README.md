@@ -110,3 +110,22 @@ quando o usuário abre a aba — o carregamento inicial do app não muda.
 As glosas em português cobrem os 300 lemas mais frequentes, que correspondem a
 79% das ocorrências do texto. Para ampliar, basta acrescentar entradas em
 `GLOSAS`, no arquivo que gerou `morf.json`.
+
+## Novidades da versão 4
+
+- **Análise de frases**: versículos reais do NT em que o aluno toca na palavra que
+  está no caso pedido. Gerado automaticamente da morfologia — 795 versículos
+  elegíveis, filtrados por tamanho e por cobertura do glossário.
+- **Revisão espaçada estendida**: além das letras, entram as palavras dos módulos
+  já estudados, com o mesmo sorteio ponderado por erro.
+- **Aba bíblica ligada ao progresso**: palavras já estudadas ficam marcadas, cada
+  capítulo mostra quanto do seu vocabulário o app traduz, há busca por grego ou
+  por português, e controle de tamanho de fonte.
+- Marcas editoriais do aparato (⸀ ⸂) saíram da exibição; o losango de variante
+  ganhou área de toque adequada.
+
+## Pendência importante
+
+As 300 glosas em português, a tabela de pronúncia figurada e os 12 devocionais
+foram escritos sem revisão de um professor de grego. Antes de usar com outras
+pessoas, esse conteúdo precisa ser conferido.

@@ -1,16 +1,25 @@
 import { A } from "./data";
+import { MODULES } from "./modules";
 
 export default function Stats({ state, round, onClose, onAgain }) {
   const { stats, reviews } = state;
 
   const porLetra = A
-    .map((L) => ({ L, ...(stats[L.i] || { seen: 0, wrong: 0 }) }))
+    .map((L) => ({ L, ...(stats["L" + L.i] || { seen: 0, wrong: 0 }) }))
     .filter((x) => x.seen > 0)
     .map((x) => ({ ...x, taxa: x.wrong / x.seen }))
     .sort((a, b) => b.taxa - a.taxa || b.wrong - a.wrong);
 
   const dificeis = porLetra.filter((x) => x.wrong > 0).slice(0, 6);
   const limpas = porLetra.filter((x) => x.wrong === 0);
+
+  const todosItens = Object.values(MODULES).flatMap((m) => m.tasks.flatMap((t) => t.items));
+  const porPalavra = todosItens
+    .map((it) => ({ it, ...(stats["M:" + it.f] || { seen: 0, wrong: 0 }) }))
+    .filter((x) => x.seen > 0 && x.wrong > 0)
+    .map((x) => ({ ...x, taxa: x.wrong / x.seen }))
+    .sort((a, b) => b.taxa - a.taxa || b.wrong - a.wrong)
+    .slice(0, 6);
 
   const totQ = reviews.reduce((s, r) => s + r.total, 0);
   const totE = reviews.reduce((s, r) => s + r.wrong, 0);
@@ -83,6 +92,19 @@ export default function Stats({ state, round, onClose, onAgain }) {
             <p className="hint">
               Estas letras aparecem com mais frequência nas próximas revisões.
             </p>
+          </>
+        )}
+
+        {porPalavra.length > 0 && (
+          <>
+            <h2 className="sec">Palavras que escapam</h2>
+            {porPalavra.map(({ it, seen, wrong, taxa }) => (
+              <div className="statrow" key={it.f}>
+                <span className="gr sl wide">{it.f}</span>
+                <span className="sbar"><i style={{ width: `${Math.round(taxa * 100)}%` }} /></span>
+                <span className="sv">{wrong}/{seen}</span>
+              </div>
+            ))}
           </>
         )}
 

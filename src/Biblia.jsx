@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { analisar, translit } from "./morfologia";
+import { pronuncia } from "./fonetica";
+import { falar } from "./speech";
 
 const b36 = (s) => parseInt(s, 36);
-const limpar = (p) => p.replace(/[·,.;:!?"“”«»()\[\]—–]/g, "").replace(/ʼ/g, "");
+const marcas = /[\u2E00-\u2E7F]/g;   // sinais editoriais do aparato
+const semMarcas = (p) => p.replace(marcas, "");
+const limpar = (p) => p.replace(marcas, "").replace(/[·,.;:!?"“”«»()\[\]—–]/g, "").replace(/ʼ/g, "");
 
-export default function Biblia() {
+export default function Biblia({ voice = true, estudados = new Set() }) {
   const [nt, setNt] = useState(null);
   const [mf, setMf] = useState(null);
   const [erro, setErro] = useState(false);
@@ -13,6 +17,16 @@ export default function Biblia() {
   const [ap, setAp] = useState(null);
   const [sel, setSel] = useState(null);   // { vKey, i, tokens }
   const [variante, setVariante] = useState(null);
+  const [busca, setBusca] = useState(null);      // null = leitura; string = tela de busca
+  const [termo, setTermo] = useState("");
+  const [fonte, setFonte] = useState(() => {
+    try { return Number(localStorage.getItem("koine:fonte")) || 18; } catch { return 18; }
+  });
+  const mudarFonte = (d) => setFonte((f) => {
+    const n = Math.min(26, Math.max(14, f + d));
+    try { localStorage.setItem("koine:fonte", String(n)); } catch {}
+    return n;
+  });
 
   useEffect(() => {
     const carregar = async () => {
@@ -38,8 +52,75 @@ export default function Biblia() {
     });
   }, [mf]);
 
+  // percentual de palavras do capítulo que o app traduz
+  const legibilidade = (bi, ci) => {
+    if (!mf || !nt) return null;
+    let tot = 0, com = 0;
+    for (const [num] of nt[bi].c[ci]) {
+      const bruto = mf.v[`${bi}.${ci + 1}.${num}`];
+      if (!bruto) continue;
+      for (const t of bruto.split(" ")) {
+        tot++;
+        if (mf.glosas[b36(t.split(".")[0])]) com++;
+      }
+    }
+    return tot ? Math.round((com / tot) * 100) : null;
+  };
+
   if (erro) return <section className="view"><p className="dim">Não consegui carregar o texto.</p></section>;
   if (!nt) return <section className="view"><p className="dim center pad">Carregando o Novo Testamento…</p></section>;
+
+  if (busca !== null) {
+    const alvo = termo.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    let achados = [];
+    if (alvo.length >= 2 && mf) {
+      // se o termo casar com uma glosa ou um lema, busca por lema; senão, pelo texto
+      const porLema = mf.lemas.findIndex((l, k) =>
+        l.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").startsWith(alvo) ||
+        (mf.glosas[k] || "").toLowerCase().startsWith(alvo));
+      for (let bi = 0; bi < nt.length && achados.length < 60; bi++) {
+        for (let ci = 0; ci < nt[bi].c.length && achados.length < 60; ci++) {
+          for (const [num, texto] of nt[bi].c[ci]) {
+            if (achados.length >= 60) break;
+            let bate = false;
+            if (porLema >= 0) {
+              const bruto = mf.v[`${bi}.${ci + 1}.${num}`];
+              bate = bruto && bruto.split(" ").some((t) => b36(t.split(".")[0]) === porLema);
+            }
+            if (!bate) {
+              const plano = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              bate = plano.includes(alvo);
+            }
+            if (bate) achados.push({ bi, ci, num, texto });
+          }
+        }
+      }
+    }
+    return (
+      <section className="view">
+        <button className="backlink" onClick={() => { setBusca(null); setTermo(""); }}>‹ Livros</button>
+        <h1 className="modtitle">Buscar</h1>
+        <input
+          className="search" autoFocus value={termo} onChange={(e) => setTermo(e.target.value)}
+          placeholder="palavra grega ou tradução…" autoComplete="off" autoCapitalize="off"
+        />
+        <p className="hint" style={{ textAlign: "left" }}>
+          Aceita grego com ou sem acento, e também português: buscar “glória” encontra
+          as ocorrências de <span className="gr">δόξα</span>.
+        </p>
+        {alvo.length >= 2 && (
+          <p className="dim mb">{achados.length}{achados.length === 60 ? "+" : ""} resultado(s)</p>
+        )}
+        {achados.map((a, k) => (
+          <button className="resultado" key={k}
+            onClick={() => { setBusca(null); setLivro(a.bi); setCap(a.ci); window.scrollTo(0, 0); }}>
+            <b>{nt[a.bi].n} {a.ci + 1}:{a.num}</b>
+            <span className="gr">{semMarcas(a.texto)}</span>
+          </button>
+        ))}
+      </section>
+    );
+  }
 
   if (livro === null) {
     return (
@@ -49,6 +130,7 @@ export default function Biblia() {
           Toque em qualquer palavra para ver lema, análise e ocorrências. O losango
           ao lado do versículo abre o aparato crítico.
         </p>
+        <button className="buscabtn" onClick={() => setBusca("")}>🔍 Buscar no Novo Testamento</button>
         <div className="books">
           {nt.map((l, i) => (
             <button className="book" key={l.id} onClick={() => { setLivro(i); setCap(null); }}>
@@ -70,10 +152,20 @@ export default function Biblia() {
         <h1 className="modtitle">{L.n}</h1>
         <p className="dim mb">{L.c.length} capítulos</p>
         <div className="caps">
-          {L.c.map((_, i) => (
-            <button className="capbtn" key={i} onClick={() => { setCap(i); window.scrollTo(0, 0); }}>{i + 1}</button>
-          ))}
+          {L.c.map((_, i) => {
+            const leg = legibilidade(livro, i);
+            return (
+              <button className="capbtn" key={i} onClick={() => { setCap(i); window.scrollTo(0, 0); }}>
+                <span>{i + 1}</span>
+                {leg !== null && <em style={{ opacity: 0.25 + leg / 160 }}>{leg}%</em>}
+              </button>
+            );
+          })}
         </div>
+        <p className="hint">
+          A porcentagem indica quantas palavras do capítulo o app traduz. Comece pelos
+          números mais altos — é assim que a leitura deixa de ser decifração.
+        </p>
       </section>
     );
   }
@@ -81,9 +173,15 @@ export default function Biblia() {
   return (
     <section className="view">
       <button className="backlink" onClick={() => { setCap(null); setSel(null); }}>‹ {L.n}</button>
-      <h1 className="modtitle">{L.n} {cap + 1}</h1>
+      <div className="caphead">
+        <h1 className="modtitle">{L.n} {cap + 1}</h1>
+        <div className="fonte">
+          <button onClick={() => mudarFonte(-2)} aria-label="Diminuir">A−</button>
+          <button onClick={() => mudarFonte(2)} aria-label="Aumentar">A+</button>
+        </div>
+      </div>
 
-      <div className="chapter">
+      <div className="chapter" style={{ fontSize: fonte }}>
         {L.c[cap].map(([num, texto]) => {
           const vKey = `${livro}.${cap + 1}.${num}`;
           const toks = tokensDe(vKey);
@@ -97,15 +195,18 @@ export default function Biblia() {
                 <button className="apmark" onClick={() => setVariante({ vKey, num, vars })}
                   title="variantes textuais">◆</button>
               )}
-              {palavras.map((p, k) => (
+              {palavras.map((p, k) => {
+                const lema = alinhado ? mf.lemas[toks[k].lema] : null;
+                const visto = lema && estudados.has(lema);
+                return (
                 <span
                   key={k}
-                  className={"vw gr" + (alinhado ? " known" : "")}
+                  className={"vw gr" + (visto ? " known" : "")}
                   onClick={() => alinhado && setSel({ vKey, i: k, palavras, toks })}
                 >
-                  {p}{" "}
-                </span>
-              ))}
+                  {semMarcas(p)}{" "}
+                </span>);
+              })}
             </p>
           );
         })}
@@ -118,7 +219,7 @@ export default function Biblia() {
 
       <Credito />
 
-      {sel && <Painel sel={sel} setSel={setSel} mf={mf} />}
+      {sel && <Painel sel={sel} setSel={setSel} mf={mf} voice={voice} />}
       {variante && (
         <Aparato dados={variante} livro={L.n} cap={cap + 1} onClose={() => setVariante(null)} />
       )}
@@ -126,13 +227,15 @@ export default function Biblia() {
   );
 }
 
-function Painel({ sel, setSel, mf }) {
+function Painel({ sel, setSel, mf, voice }) {
   const { palavras, toks, i } = sel;
   const t = toks[i];
   const lema = mf.lemas[t.lema];
   const glosa = mf.glosas[t.lema];
   const contagem = mf.freq[t.lema];
   const forma = limpar(palavras[i]);
+  const fon = pronuncia(forma);
+  const fonLema = pronuncia(lema);
   const partes = analisar(mf.codigos[t.cod]);
   const mover = (d) => {
     const j = i + d;
@@ -149,12 +252,16 @@ function Painel({ sel, setSel, mf }) {
         <div className="wi-forma">
           <span className="gr">{forma}</span>
           <i>{translit(forma)}</i>
+          <button className="ouvir" onClick={() => falar(fon, voice)}>
+            🔊 Ouvir <span className="fon">{fon}</span>
+          </button>
         </div>
 
         <div className="wi-linha">
           <span className="wi-rot">Lema</span>
           <span className="wi-val">
             <b className="gr">{lema}</b> <i>{translit(lema)}</i>
+            <button className="ouvir mini" onClick={() => falar(fonLema, voice)}>🔊</button>
             {glosa && <span className="wi-glosa">{glosa}</span>}
           </span>
         </div>
@@ -167,11 +274,17 @@ function Painel({ sel, setSel, mf }) {
         </div>
 
         <div className="wi-linha">
-          <span className="wi-rot">Contagem</span>
+          <span className="wi-rot">Ocorrências</span>
           <span className="wi-val">
             {contagem.toLocaleString("pt-BR")} {contagem === 1 ? "ocorrência" : "ocorrências"} no NT
           </span>
         </div>
+
+        <p className="hint fonnota">
+          Pronúncia figurada em português, seguindo o grego clássico das fichas — é
+          esse texto que a voz do aparelho lê. Se a voz soar mecânica, baixe a versão
+          aprimorada em Ajustes › Acessibilidade › Conteúdo Falado › Vozes › Português.
+        </p>
 
         {!glosa && (
           <p className="hint">
@@ -182,7 +295,7 @@ function Painel({ sel, setSel, mf }) {
 
         <div className="wi-nav">
           <button className="wi-arrow" onClick={() => mover(-1)} disabled={i === 0}>‹</button>
-          <span className="gr wi-ctx">{palavras[i]}</span>
+          <span className="gr wi-ctx">{semMarcas(palavras[i])}</span>
           <button className="wi-arrow" onClick={() => mover(1)} disabled={i === palavras.length - 1}>›</button>
         </div>
 

@@ -23,6 +23,12 @@ function read() {
     const raw = localStorage.getItem(KEY);
     if (!raw) return INITIAL;
     const s = { ...INITIAL, ...JSON.parse(raw) };
+    // versões antigas guardavam a letra como número; agora a chave é textual
+    if (s.stats) {
+      const conv = {};
+      for (const [k, v] of Object.entries(s.stats)) conv[/^\d+$/.test(k) ? "L" + k : k] = v;
+      s.stats = conv;
+    }
     // ofensiva expira se o aluno pulou um dia inteiro
     if (s.last && s.last !== today() && s.last !== yesterday()) s.streak = 0;
     return s;
@@ -59,15 +65,12 @@ export function useStore() {
   }, []);
 
   // registra cada resposta da revisão geral, por letra
-  const recordAnswer = useCallback((letterIndex, ok) => {
+  const recordAnswer = useCallback((chave, ok) => {
     setState((s) => {
-      const cur = s.stats[letterIndex] || { seen: 0, wrong: 0 };
+      const cur = s.stats[chave] || { seen: 0, wrong: 0 };
       return {
         ...s,
-        stats: {
-          ...s.stats,
-          [letterIndex]: { seen: cur.seen + 1, wrong: cur.wrong + (ok ? 0 : 1) },
-        },
+        stats: { ...s.stats, [chave]: { seen: cur.seen + 1, wrong: cur.wrong + (ok ? 0 : 1) } },
       };
     });
   }, []);

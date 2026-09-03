@@ -16,7 +16,7 @@ function progressoModulo(state, id) {
   return [feitas, n * 4];
 }
 
-export default function Home({ state, onOpenModule, onStart, onReview, onDecode, onDevocional, onStats, onBackup }) {
+export default function Home({ state, onOpenModule, onStart, onReview, onDecode, onDevocional, onAnalise, palavrasEstudadas = 0, onStats, onBackup }) {
   const [feitasAlf, totAlf] = progressoAlfabeto(state);
   const spot = nextSpot(state);
   const vistas = seenLetters(state.done);
@@ -105,13 +105,25 @@ export default function Home({ state, onOpenModule, onStart, onReview, onDecode,
       })}
 
       <h2 className="sec">Praticar</h2>
-      <button className="revcard" onClick={onReview}>
+      <button className="revcard destaque" onClick={onAnalise}>
+        <span className="ic gr">τῷ</span>
+        <span>
+          <b>Análise de frases</b>
+          <small>
+            Versículos reais do Novo Testamento: encontre o sujeito, o objeto direto,
+            o indireto. É aqui que a gramática vira leitura.
+          </small>
+        </span>
+      </button>
+
+      <button className="revcard mt" onClick={onReview}>
         <span className="ic">↻</span>
         <span>
           <b>Revisão geral</b>
           <small>
             {vistas.length
-              ? `12 questões sorteadas entre as ${vistas.length} letras já vistas, puxando o que você mais erra.`
+              ? `Letras${palavrasEstudadas ? ` e ${palavrasEstudadas} palavras` : ""} já vistas, ` +
+                "sorteadas com peso para o que você mais erra."
               : "disponível assim que você terminar a primeira lição."}
           </small>
         </span>

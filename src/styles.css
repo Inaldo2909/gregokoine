@@ -5,22 +5,22 @@
    =========================================================================== */
 
 :root{
-  --bg:#F7FAFF; --bg2:#FFFFFF; --hair:#DDE7F5;
-  --card:#FFFFFF; --card2:#EEF4FF;
-  --text:#0F1E36; --muted:#5B7091;
-  --accent:#2563EB; --accent-ink:#1D4ED8; --accent-dim:#DBEAFE;
-  --ok:#0E3A8A; --ok-dim:#E3ECFB;
-  --no:#DC2626; --no-dim:#FEE2E2;
+  --bg:#F6F8FD; --bg2:#FFFFFF; --hair:#DCE4F2;
+  --card:#FFFFFF; --card2:#ECF1FB;
+  --text:#0D1B33; --muted:#5A6E8E;
+  --accent:#2350C6; --accent-ink:#1A3E9B; --accent-dim:#E4EBFA;
+  --ok:#0E3A8A; --ok-dim:#E1E9F8;
+  --no:#C2362E; --no-dim:#FAE9E7;
   --greek:"Palatino Linotype",Palatino,"Iowan Old Style","Times New Roman",serif;
   --ui:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;
   --maxw:480px;
   --tab:calc(58px + env(safe-area-inset-bottom));
 }
 [data-theme="dark"]{
-  --bg:#0B1526; --bg2:#101F3A; --hair:rgba(255,255,255,.10);
+  --bg:#0A1424; --bg2:#0F1D36; --hair:rgba(255,255,255,.10);
   --card:rgba(255,255,255,.055); --card2:rgba(255,255,255,.10);
-  --text:#E9F0FB; --muted:#8CA2C6;
-  --accent:#5B95FF; --accent-ink:#8FB6FF; --accent-dim:rgba(91,149,255,.16);
+  --text:#E7EEFA; --muted:#8AA0C2;
+  --accent:#6E9BFF; --accent-ink:#9DBCFF; --accent-dim:rgba(110,155,255,.16);
   --ok:#9CC2FF; --ok-dim:rgba(156,194,255,.15);
   --no:#FF7A7A; --no-dim:rgba(255,122,122,.15);
 }
@@ -45,7 +45,7 @@ input{font:inherit}
 .app{
   position:relative;width:100%;max-width:var(--maxw);margin:0 auto;
   min-height:100dvh;background:var(--bg);
-  background-image:radial-gradient(120% 50% at 50% -10%,rgba(37,99,235,.07),transparent 62%);
+  background-image:radial-gradient(120% 50% at 50% -10%,rgba(35,80,198,.07),transparent 62%);
 }
 [data-theme="dark"] .app{background-image:radial-gradient(120% 55% at 50% -8%,rgba(91,149,255,.16),transparent 60%)}
 @media (min-width:520px){
@@ -80,7 +80,7 @@ p{margin:0 0 12px}
 .cont{
   display:flex;align-items:center;gap:14px;width:100%;text-align:left;
   background:var(--accent);color:#fff;border-radius:20px;padding:16px 18px;margin:4px 0 16px;
-  box-shadow:0 8px 22px -12px rgba(37,99,235,.55);
+  box-shadow:0 8px 22px -12px rgba(35,80,198,.5);
 }
 .cont:active{transform:scale(.985)}
 .cont .g{font-family:var(--greek);font-size:30px;line-height:1;min-width:40px;text-align:center}
@@ -169,7 +169,7 @@ p{margin:0 0 12px}
 .hint.tight{margin:-10px 0 4px}
 .hint.bad{color:var(--no)}
 .hear{display:grid;place-items:center;padding:22px 0}
-.hearbtn{width:92px;height:92px;border-radius:32px;background:var(--accent);color:#fff;font-size:34px;display:grid;place-items:center;box-shadow:0 10px 26px -12px rgba(37,99,235,.55)}
+.hearbtn{width:92px;height:92px;border-radius:32px;background:var(--accent);color:#fff;font-size:34px;display:grid;place-items:center;box-shadow:0 10px 26px -12px rgba(35,80,198,.5)}
 .hearbtn:active{transform:scale(.95)}
 
 .foot{position:sticky;bottom:0;padding:14px 0 calc(env(safe-area-inset-bottom) + 14px);background:var(--bg)}
@@ -408,8 +408,8 @@ nav button .l{font-size:9.5px;text-align:center;padding:0 2px}
 
 /* --- informação de palavra -------------------------------------------------- */
 .wi-tit{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:12px}
-.wi-forma{text-align:center;margin-bottom:18px}
-.wi-forma .gr{display:block;font-size:36px;line-height:1.2}
+.wi-forma{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:20px}
+.wi-forma .gr{font-size:36px;line-height:1.2}
 .wi-forma i{color:var(--muted);font-size:14px}
 .wi-linha{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--hair);font-size:14.5px}
 .wi-rot{min-width:88px;font-size:11px;text-transform:uppercase;letter-spacing:.07em;
@@ -428,8 +428,8 @@ nav button .l{font-size:9.5px;text-align:center;padding:0 2px}
 .wi-ctx{flex:1;text-align:center;font-size:19px}
 
 /* --- aparato crítico -------------------------------------------------------- */
-.apmark{font-family:var(--ui);font-size:9px;color:var(--accent);vertical-align:super;
-  margin-right:5px;padding:2px 3px}
+.apmark{font-family:var(--ui);font-size:11px;color:var(--accent);vertical-align:super;
+  margin-right:4px;padding:12px 10px;margin-left:-6px;line-height:0}
 .apmark:active{opacity:.5}
 .apunit{background:var(--card);border:1px solid var(--hair);border-radius:14px;
   padding:12px;margin-bottom:9px}
@@ -441,3 +441,54 @@ nav button .l{font-size:9.5px;text-align:center;padding:0 2px}
 .apsigla{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--hair);font-size:13px}
 .apsigla b{min-width:52px;color:var(--accent-ink);font-weight:800}
 .apsigla span{color:var(--muted);flex:1}
+
+/* --- botão ouvir no painel de palavra --------------------------------------- */
+.ouvir{display:inline-flex;align-items:center;gap:9px;background:var(--accent-dim);
+  color:var(--accent-ink);border-radius:20px;padding:9px 17px;font-size:13px;
+  font-weight:700;margin-top:8px}
+.ouvir:active{opacity:.7}
+.ouvir .fon{font-weight:500;font-style:italic;opacity:.85}
+.ouvir.mini{margin:0 0 0 12px;padding:4px 10px;font-size:12px;vertical-align:middle}
+.fonnota{text-align:left;margin-top:12px}
+
+/* --- análise de frases ------------------------------------------------------ */
+.qcount{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+.anref{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent-ink);margin-bottom:12px}
+.anverso{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
+.anw{font-size:22px;line-height:1.5;padding:6px 9px;border-radius:10px;
+  background:var(--card);border:1px solid var(--hair)}
+.anw:active{background:var(--accent-dim)}
+.anw.certo{background:var(--ok-dim);border-color:var(--ok);color:var(--ok);font-weight:600}
+.anw.errado{background:var(--no-dim);border-color:var(--no);color:var(--no)}
+.anpergunta{font-size:16px;line-height:1.5}
+.anwhy{margin-top:16px;padding:15px;border-radius:15px;background:var(--card2)}
+.anwhy.ok{background:var(--ok-dim)}
+.anwhy.bad{background:var(--no-dim)}
+.anwhy b{display:block;font-size:14.5px;margin-bottom:5px}
+.anwhy.ok b{color:var(--ok)}
+.anwhy.bad b{color:var(--no)}
+.anwhy p{margin:0 0 7px;font-size:14px;line-height:1.5}
+.anwhy .gr{font-size:17px}
+
+/* --- busca, legibilidade e leitura ------------------------------------------ */
+.buscabtn{display:block;width:100%;text-align:center;padding:13px;border-radius:14px;
+  background:var(--card);border:1px solid var(--hair);color:var(--accent-ink);
+  font-size:14px;font-weight:700;margin-bottom:12px}
+.resultado{display:block;width:100%;text-align:left;background:var(--card);
+  border:1px solid var(--hair);border-radius:14px;padding:12px;margin-bottom:8px}
+.resultado b{display:block;font-size:12px;color:var(--accent-ink);margin-bottom:4px}
+.resultado .gr{font-size:15.5px;line-height:1.5;display:block}
+.capbtn{aspect-ratio:1;border-radius:12px;background:var(--card);border:1px solid var(--hair);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.capbtn span{font-size:14px;font-weight:700}
+.capbtn em{font-style:normal;font-size:9px;color:var(--accent-ink);font-weight:700}
+.caphead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fonte{display:flex;gap:6px}
+.fonte button{width:40px;height:36px;border-radius:11px;background:var(--card);
+  border:1px solid var(--hair);font-size:13px;font-weight:800;color:var(--accent-ink)}
+.chapter .verse{font-size:inherit}
+.revcard.destaque{background:var(--accent-dim);border-color:var(--accent)}
+.revcard.destaque .ic{background:var(--card)}
+.statrow .sl.wide{width:auto;min-width:96px;max-width:150px;font-size:17px;text-align:left;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

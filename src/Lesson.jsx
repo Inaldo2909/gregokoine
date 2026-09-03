@@ -5,11 +5,11 @@ import { buildModuleLesson } from "./modules";
 
 export default function Lesson({
   task, lesson, voice, onQuit, onFinish, taskWasFull,
-  review = false, decode = false, moduleId = null, pool = [], stats = {}, onAnswer,
+  review = false, decode = false, moduleId = null, pool = [], stats = {}, itens = [], onAnswer,
 }) {
   const [queue, setQueue] = useState(() =>
     decode ? buildDecode(pool)
-           : review ? buildReview(pool, stats)
+           : review ? buildReview(pool, stats, 12, itens)
                     : moduleId ? buildModuleLesson(moduleId, task, lesson)
                                : buildLesson(task, lesson));
 
@@ -35,7 +35,7 @@ export default function Lesson({
   }, [i, over]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function judge(ok, why) {
-    if (review && q.L) onAnswer?.(q.L.i, ok);
+    if (review) onAnswer?.(q.L ? "L" + q.L.i : q.it ? "M:" + q.it.f : null, ok);
     if (!ok) {
       setErrors((e) => e + 1);
       setQueue((s) => [...s, q]); // erro volta ao fim da fila
