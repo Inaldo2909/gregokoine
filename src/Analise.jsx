@@ -15,8 +15,52 @@ const CASOS = {
   A: ["acusativo", "o que sofre a ação — o objeto direto"],
 };
 
+const ehVerbo = (cod) => cod.startsWith("V-");
+const ehAoristo = (cod) => ehVerbo(cod) && cod[3] === "A";   // 2ª posição da análise
+
+// cada modo diz quais palavras do versículo respondem à pergunta
+const MODOS = {
+  casos: {
+    carregando: "Escolhendo versículos…",
+    // devolve { chave: [índices] } com pelo menos duas chaves, ou null
+    alvos(cods) {
+      const casos = {};
+      cods.forEach((cod, i) => {
+        const caso = cod[6];                       // 5ª posição da análise
+        if (CASOS[caso]) (casos[caso] ||= []).push(i);
+      });
+      return Object.keys(casos).length >= 2 ? casos : null;
+    },
+    pergunta: (caso) => [`que está no ${CASOS[caso][0]}`, CASOS[caso][1]],
+    resposta: (caso) => `No ${CASOS[caso][0]} está`,
+    plural: "— artigo e substantivo concordam.",
+    fimOk: "Você está lendo a função pela forma. É esse o objetivo.",
+    fimDica: "Repare sempre no artigo: ele muda junto com o substantivo.",
+  },
+  aoristo: {
+    carregando: "Procurando aoristos…",
+    // precisa de um aoristo no indicativo (com aumento visível) e de outro verbo
+    // em tempo diferente, para que a escolha exija olhar a forma
+    alvos(cods) {
+      const aor = [], outros = [];
+      cods.forEach((cod, i) => {
+        if (ehAoristo(cod)) aor.push(i);
+        else if (ehVerbo(cod)) outros.push(i);
+      });
+      const comAumento = aor.some((i) => cods[i][5] === "I");
+      return comAumento && outros.length ? { A: aor } : null;
+    },
+    pergunta: () => ["que está no aoristo",
+      "o passado visto como fato completo; no indicativo leva o aumento ἐ- e, em geral, a marca -σα-"],
+    resposta: () => "No aoristo está",
+    plural: "— todas estão no aoristo.",
+    fimOk: "Você reconhece o aoristo pela forma. É assim que a narrativa do NT avança.",
+    fimDica: "No indicativo, procure o ἐ- no início e o -σα- antes da terminação. Fora do indicativo não há aumento.",
+  },
+};
+
 // escolhe versículos curtos e com vocabulário conhecido
-function montarRodada(nt, mf, n = 8) {
+function montarRodada(nt, mf, modo, n = 8) {
   const bons = [];
   for (let bi = 0; bi < nt.length; bi++) {
     const L = nt[bi];
@@ -35,14 +79,9 @@ function montarRodada(nt, mf, n = 8) {
         const comGlosa = toks.filter((t) => mf.glosas[t.lema]).length;
         if (comGlosa / toks.length < 0.75) continue;
 
-        const casos = {};
-        toks.forEach((t, i) => {
-          const cod = mf.codigos[t.cod];
-          const caso = cod[6];                       // 5ª posição da análise
-          if (CASOS[caso]) (casos[caso] ||= []).push(i);
-        });
+        const casos = modo.alvos(toks.map((t) => mf.codigos[t.cod]));
+        if (!casos) continue;
         const disponiveis = Object.keys(casos);
-        if (disponiveis.length < 2) continue;
         bons.push({ bi, ci, num, ref: `${L.n} ${ci + 1}:${num}`, palavras, toks, casos, disponiveis });
       }
     }
@@ -54,7 +93,8 @@ function montarRodada(nt, mf, n = 8) {
   });
 }
 
-export default function Analise({ voice, onClose }) {
+export default function Analise({ modo: nomeModo = "casos", voice, onClose }) {
+  const modo = MODOS[nomeModo] || MODOS.casos;
   const [nt, setNt] = useState(null);
   const [mf, setMf] = useState(null);
   const [rodada, setRodada] = useState(null);
@@ -74,15 +114,15 @@ export default function Analise({ voice, onClose }) {
   }, []);
 
   useEffect(() => {
-    if (nt && mf && !rodada) setRodada(montarRodada(nt, mf));
-  }, [nt, mf, rodada]);
+    if (nt && mf && !rodada) setRodada(montarRodada(nt, mf, modo));
+  }, [nt, mf, rodada, modo]);
 
   if (!rodada) {
     return (
       <div className="lesson">
         <div className="ltop"><button className="x" onClick={onClose}>✕</button>
           <div className="lbar"><i style={{ width: "0%" }} /></div></div>
-        <p className="dim center pad">Escolhendo versículos…</p>
+        <p className="dim center pad">{modo.carregando}</p>
       </div>
     );
   }
@@ -96,9 +136,7 @@ export default function Analise({ voice, onClose }) {
           <div className="ring">Ω</div>
           <h2>{acertos} de {rodada.length}</h2>
           <p className="dim">
-            {acertos === rodada.length
-              ? "Você está lendo a função pela forma. É esse o objetivo."
-              : "Repare sempre no artigo: ele muda junto com o substantivo."}
+            {acertos === rodada.length ? modo.fimOk : modo.fimDica}
           </p>
         </div>
         <div className="foot">
@@ -114,7 +152,7 @@ export default function Analise({ voice, onClose }) {
   }
 
   const q = rodada[i];
-  const [nome, funcao] = CASOS[q.caso];
+  const [alvo, funcao] = modo.pergunta(q.caso);
   const certos = q.casos[q.caso];
   const acertou = tocou !== null && certos.includes(tocou);
 
@@ -157,7 +195,7 @@ export default function Analise({ voice, onClose }) {
         </div>
 
         <p className="anpergunta">
-          Toque na palavra que está no <b>{nome}</b>.
+          Toque na palavra <b>{alvo}</b>.
           <span className="dim"> {funcao}.</span>
         </p>
 
@@ -171,11 +209,11 @@ export default function Analise({ voice, onClose }) {
             </p>
             {!acertou && (
               <p>
-                No {nome} está{" "}
+                {modo.resposta(q.caso)}{" "}
                 {certos.map((k) => (
                   <span key={k}><span className="gr">{limpar(q.palavras[k])}</span>{" "}</span>
                 ))}
-                {certos.length > 1 ? "— artigo e substantivo concordam." : "."}
+                {certos.length > 1 ? modo.plural : "."}
               </p>
             )}
             <button className="ouvir" onClick={() => falar(pronuncia(limpar(q.palavras[certos[0]])), voice)}>

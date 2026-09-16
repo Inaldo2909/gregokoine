@@ -6,7 +6,7 @@ import Biblia from "./Biblia";
 import Lesson from "./Lesson";
 import Stats from "./Stats";
 import Backup from "./Backup";
-import Devocional from "./Devocional";
+import Devocional from "./Devocional.jsx";
 import Analise from "./Analise";
 import { MODULES } from "./modules";
 import { useMemo } from "react";
@@ -21,13 +21,13 @@ export default function App() {
 
   const [tab, setTab] = useState("trilha");
   const [modulo, setModulo] = useState(null);   // módulo aberto
-  const [lesson, setLesson] = useState(null);   // { id, t, l } | { review } | { decode }
+  const [lesson, setLesson] = useState(null);   // { id, t, l } | { review, nonce } | { decode, nonce }
   const [round, setRound] = useState(null);
   const [wasFull, setWasFull] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showBackup, setShowBackup] = useState(false);
   const [showDev, setShowDev] = useState(false);
-  const [showAnalise, setShowAnalise] = useState(false);
+  const [showAnalise, setShowAnalise] = useState(null);   // null | "casos" | "aoristo"
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
@@ -55,13 +55,17 @@ export default function App() {
     () => new Set(estudadosItens.map((i) => i.f)), [estudadosItens]);
 
   function start(id, t, l) { touchDay(); setWasFull(false); setLesson({ id, t, l }); }
-  function startReview() { touchDay(); setRound(null); setLesson({ review: true }); }
-  function startDecode() { touchDay(); setRound(null); setLesson({ decode: true }); }
+  // a chave da rodada avulsa é fixada aqui: se fosse gerada a cada render, qualquer
+  // mudança de estado (como registrar a resposta) remontaria a lição e apagaria o veredito
+  function startReview(tipo = "geral") {
+    touchDay(); setRound(null); setLesson({ review: tipo, nonce: Date.now() });
+  }
+  function startDecode() { touchDay(); setRound(null); setLesson({ decode: true, nonce: Date.now() }); }
 
   function finish(resultado, t, l, errors, moduleId) {
     if (resultado) {
       if (!resultado.decode) recordReview(resultado.total, resultado.wrong);
-      setRound(resultado);
+      setRound({ ...resultado, tipo: lesson?.review || null });
       setLesson(null);
       return;
     }
@@ -77,7 +81,7 @@ export default function App() {
     return (
       <div className="app">
         <Lesson
-          key={rev || dec ? `avulso-${Date.now()}` : `${lesson.id}-${lesson.t}-${lesson.l}`}
+          key={rev || dec ? `avulso-${lesson.nonce}` : `${lesson.id}-${lesson.t}-${lesson.l}`}
           task={lesson.t}
           lesson={lesson.l}
           moduleId={generico ? lesson.id : null}
@@ -85,7 +89,7 @@ export default function App() {
           decode={dec}
           pool={rev || dec ? seenLetters(state.done) : []}
           stats={state.stats}
-          itens={rev ? estudadosItens : []}
+          itens={lesson.review === "geral" ? estudadosItens : []}
           onAnswer={recordAnswer}
           voice={state.voice}
           taskWasFull={wasFull}
@@ -112,7 +116,8 @@ export default function App() {
   if (showAnalise) {
     return (
       <div className="app">
-        <Analise voice={state.voice} onClose={() => setShowAnalise(false)} />
+        <Analise key={showAnalise} modo={showAnalise} voice={state.voice}
+                 onClose={() => setShowAnalise(null)} />
       </div>
     );
   }
@@ -123,7 +128,7 @@ export default function App() {
         <Stats
           state={state}
           round={round}
-          onAgain={round ? () => { setRound(null); (round.decode ? startDecode : startReview)(); } : null}
+          onAgain={round ? () => round.decode ? startDecode() : startReview(round.tipo || "geral") : null}
           onClose={() => { setRound(null); setShowStats(false); }}
         />
       </div>
@@ -160,7 +165,7 @@ export default function App() {
               onReview={startReview}
               onDecode={startDecode}
               onDevocional={() => { touchDay(); setShowDev(true); }}
-              onAnalise={() => { touchDay(); setShowAnalise(true); }}
+              onAnalise={(modo = "casos") => { touchDay(); setShowAnalise(modo); }}
               palavrasEstudadas={lemasEstudados.size}
               onStats={() => setShowStats(true)}
               onBackup={() => setShowBackup(true)}

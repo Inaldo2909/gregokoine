@@ -46,7 +46,7 @@ export default function Home({ state, onOpenModule, onStart, onReview, onDecode,
         go: () => onStart(pendente, t, l),
       };
     } else {
-      cont = { g: "✓", b: "Tudo concluído", s: "use a revisão para não esquecer", go: onReview };
+      cont = { g: "✓", b: "Tudo concluído", s: "use a revisão para não esquecer", go: () => onReview("geral") };
     }
   }
 
@@ -105,7 +105,7 @@ export default function Home({ state, onOpenModule, onStart, onReview, onDecode,
       })}
 
       <h2 className="sec">Praticar</h2>
-      <button className="revcard destaque" onClick={onAnalise}>
+      <button className="revcard destaque" onClick={() => onAnalise("casos")}>
         <span className="ic gr">τῷ</span>
         <span>
           <b>Análise de frases</b>
@@ -116,14 +116,40 @@ export default function Home({ state, onOpenModule, onStart, onReview, onDecode,
         </span>
       </button>
 
-      <button className="revcard mt" onClick={onReview}>
+      <button className="revcard mt" onClick={() => onAnalise("aoristo")}>
+        <span className="ic gr">ἔ</span>
+        <span>
+          <b>Encontre o aoristo</b>
+          <small>
+            Versículos reais: toque no verbo que está no aoristo. Procure o aumento ἐ-
+            e a marca -σα-.
+          </small>
+        </span>
+      </button>
+
+      <button className="revcard mt" onClick={() => onReview("alfabeto")} disabled={!vistas.length}>
+        <span className="ic gr">α</span>
+        <span>
+          <b>Revisão do alfabeto</b>
+          <small>
+            {vistas.length
+              ? `Só as ${vistas.length} letras já vistas: nome, transliteração, som e escrita.`
+              : "disponível assim que você terminar a primeira lição do alfabeto."}
+          </small>
+        </span>
+      </button>
+
+      <button className="revcard mt" onClick={() => onReview("geral")}
+        disabled={!vistas.length && !palavrasEstudadas}>
         <span className="ic">↻</span>
         <span>
           <b>Revisão geral</b>
           <small>
-            {vistas.length
-              ? `Letras${palavrasEstudadas ? ` e ${palavrasEstudadas} palavras` : ""} já vistas, ` +
-                "sorteadas com peso para o que você mais erra."
+            {vistas.length || palavrasEstudadas
+              ? [vistas.length && `${vistas.length} letras`,
+                 palavrasEstudadas && `${palavrasEstudadas} palavras e formas`]
+                  .filter(Boolean).join(" e ") +
+                " já estudadas, sorteadas com peso para o que você mais erra."
               : "disponível assim que você terminar a primeira lição."}
           </small>
         </span>
