@@ -1,8 +1,24 @@
 import { useState } from "react";
 import { devocionalDeHoje } from "./devocional";
 
+// Nos dados a resposta certa vem sempre em primeiro. Aqui as opções são
+// embaralhadas a cada abertura, e a certa nunca cai na mesma posição da vez
+// anterior (a última posição fica guardada no aparelho).
+const POS = "koine:dev:pos";
+function embaralhar(opts, certa) {
+  let ultima = -1;
+  try { ultima = Number(localStorage.getItem(POS) ?? -1); } catch {}
+  const erradas = opts.filter((o) => o !== certa).sort(() => Math.random() - 0.5);
+  const livres = opts.map((_, i) => i).filter((i) => i !== ultima);
+  const pos = livres[Math.floor(Math.random() * livres.length)];
+  try { localStorage.setItem(POS, String(pos)); } catch {}
+  erradas.splice(pos, 0, certa);
+  return erradas;
+}
+
 export default function Devocional({ onClose, onDone, feito }) {
   const { idx, d } = devocionalDeHoje();
+  const [opts] = useState(() => embaralhar(d.opts, d.a));
   const [escolha, setEscolha] = useState(null);
   const acertou = escolha === d.a;
 
@@ -31,7 +47,7 @@ export default function Devocional({ onClose, onDone, feito }) {
         <h2 className="sec">Tarefa</h2>
         <p className="devtask">{d.tarefa}</p>
         <div className="opts">
-          {d.opts.map((o) => {
+          {opts.map((o) => {
             let cls = "opt gk-mixed";
             if (escolha) {
               if (o === d.a) cls += " right";
