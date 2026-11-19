@@ -2,6 +2,7 @@ import { TASKS, LESSONS, seenLetters, decodable } from "./data";
 import { MODULES, MODULE_LESSONS } from "./modules";
 import { isDone, nextSpot, mDone, mNext } from "./store";
 import { devocionalDeHoje } from "./devocional";
+import { TODAS_SECOES } from "./revisaoJo1";
 
 // progresso de um módulo: [feitas, total]
 function progressoAlfabeto(state) {
@@ -16,7 +17,8 @@ function progressoModulo(state, id) {
   return [feitas, n * 4];
 }
 
-export default function Home({ state, onOpenModule, onStart, onReview, onDecode, onDevocional, onAnalise, palavrasEstudadas = 0, onStats, onBackup }) {
+export default function Home({ state, onOpenModule, onStart, onReview, onDecode, onDevocional, onAnalise, onRevisao, palavrasEstudadas = 0, onStats, onBackup }) {
+  const revFeitas = TODAS_SECOES.filter((s) => (state.rev || {})[s.id]).length;
   const [feitasAlf, totAlf] = progressoAlfabeto(state);
   const spot = nextSpot(state);
   const vistas = seenLetters(state.done);
@@ -66,6 +68,21 @@ export default function Home({ state, onOpenModule, onStart, onReview, onDecode,
       <button className="cont" onClick={cont.go}>
         <span className="g">{cont.g}</span>
         <span><b>{cont.b}</b><small>{cont.s}</small></span>
+      </button>
+
+      <h2 className="sec">Revisão para a prova</h2>
+      <button className="revcard destaque" onClick={onRevisao}>
+        <span className="ic gr">Ἰω</span>
+        <span>
+          <b>João 1:1-10</b>
+          <small>
+            Exercícios sobre toda a análise do professor: casos, preposições, verbos,
+            o pronome αὐτός e tradução.{" "}
+            {revFeitas
+              ? `${revFeitas} de ${TODAS_SECOES.length} seções feitas.`
+              : `${TODAS_SECOES.length} seções.`}
+          </small>
+        </span>
       </button>
 
       <h2 className="sec">Devocional de hoje</h2>

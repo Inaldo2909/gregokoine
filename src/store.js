@@ -13,6 +13,7 @@ const INITIAL = {
   dev: null,       // último devocional concluído: { d: "AAAA-MM-DD", idx }
   stats: {},       // { indiceDaLetra: { seen, wrong } }
   reviews: [],     // histórico de rodadas: { d, total, wrong }
+  rev: {},         // revisão para a prova: { secao: { n, melhor } }, melhor em %
 };
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -84,6 +85,19 @@ export function useStore() {
     }));
   }, []);
 
+  // fecha uma rodada da revisão para a prova: conta a rodada e guarda o melhor %
+  const recordRevisao = useCallback((secao, total, wrong) => {
+    setState((s) => {
+      const pct = total ? Math.round(((total - wrong) / total) * 100) : 0;
+      const cur = (s.rev || {})[secao] || { n: 0, melhor: 0 };
+      return {
+        ...s,
+        xp: s.xp + Math.max(0, (total - wrong) * 2),
+        rev: { ...(s.rev || {}), [secao]: { n: cur.n + 1, melhor: Math.max(cur.melhor, pct) } },
+      };
+    });
+  }, []);
+
   // exporta o progresso como um código único, para levar entre aparelhos e origens
   const exportJSON = useCallback(() => {
     const payload = { v: 1, at: new Date().toISOString(), state };
@@ -123,7 +137,7 @@ export function useStore() {
 
   const reset = useCallback(() => setState({ ...INITIAL }), []);
 
-  return { state, touchDay, completeLesson, recordAnswer, recordReview,
+  return { state, touchDay, completeLesson, recordAnswer, recordReview, recordRevisao,
            clearStats, doneDevocional, exportJSON, importJSON, toggle, setTheme, reset };
 }
 

@@ -493,3 +493,35 @@ nav button .l{font-size:9.5px;text-align:center;padding:0 2px}
 .revcard.destaque .ic{background:var(--card)}
 .statrow .sl.wide{width:auto;min-width:96px;max-width:150px;font-size:17px;text-align:left;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* --- revisão para a prova (João 1:1-10) ------------------------------------- */
+.rvrow{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--card);
+  border:1px solid var(--hair);border-radius:16px;padding:12px 14px;margin-bottom:8px}
+.rvrow:active{transform:scale(.985)}
+.rvrow .rvg{width:40px;height:40px;border-radius:13px;flex:none;display:grid;place-items:center;
+  background:var(--accent-dim);color:var(--accent-ink);font-size:16px;font-weight:800}
+.rvrow .rvb{flex:1;min-width:0}
+.rvrow b{display:block;font-size:15px;font-weight:750;letter-spacing:-.01em}
+.rvrow small{display:block;color:var(--muted);font-size:12.5px;line-height:1.4;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rvrow small.gr{font-size:14px}
+.rvrow small.wrap{white-space:normal}
+.rvnota{flex:none;font-size:12px;font-weight:800;color:var(--ok);background:var(--ok-dim);
+  border-radius:10px;padding:4px 8px;font-variant-numeric:tabular-nums}
+.rvnota.vazio{color:var(--muted);background:var(--card2);font-weight:700}
+.rvctx{font-size:22px;line-height:1.65;margin:0 0 18px;padding:12px 14px;border-radius:14px;
+  background:var(--card);border:1px solid var(--hair)}
+.rvctx .alvo{background:var(--accent-dim);color:var(--accent-ink);font-weight:700;
+  padding:1px 5px;border-radius:7px;box-shadow:inset 0 -2px 0 var(--accent)}
+.rvshow{text-align:center;font-size:34px;line-height:1.3;padding:6px 0 22px}
+.rvtxt{text-align:center;font-size:19px;font-weight:700;padding:6px 0 22px}
+.rvlinha{display:flex;flex-wrap:wrap;gap:7px;align-content:flex-start;min-height:56px;
+  padding:6px 0 12px;border-bottom:2px solid var(--hair);margin-bottom:18px}
+.rvbanco{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+.rvtile{padding:9px 13px;border-radius:12px;background:var(--card);border:1.5px solid var(--hair);
+  font-size:15.5px;font-weight:600}
+.rvtile:active{transform:scale(.96)}
+.rvtile.usada{opacity:.22}
+.rvlinha.ok .rvtile{border-color:var(--ok);background:var(--ok-dim);color:var(--ok)}
+.rvlinha.bad .rvtile{border-color:var(--no);background:var(--no-dim);color:var(--no)}
+.foot .why .rvresp{display:block;font-weight:700;color:var(--text);margin-bottom:3px}

@@ -8,6 +8,7 @@ import Stats from "./Stats";
 import Backup from "./Backup";
 import Devocional from "./Devocional.jsx";
 import Analise from "./Analise";
+import { RevisaoHub, RevisaoSessao } from "./Revisao";
 import { MODULES } from "./modules";
 import { useMemo } from "react";
 import { useStore } from "./store";
@@ -16,7 +17,7 @@ import { falar } from "./speech";
 import "./styles.css";
 
 export default function App() {
-  const { state, touchDay, completeLesson, recordAnswer, recordReview,
+  const { state, touchDay, completeLesson, recordAnswer, recordReview, recordRevisao,
           exportJSON, importJSON, reset, toggle, setTheme, doneDevocional } = useStore();
 
   const [tab, setTab] = useState("trilha");
@@ -28,6 +29,8 @@ export default function App() {
   const [showBackup, setShowBackup] = useState(false);
   const [showDev, setShowDev] = useState(false);
   const [showAnalise, setShowAnalise] = useState(null);   // null | "casos" | "aoristo"
+  const [revHub, setRevHub] = useState(false);           // lista da revisão para a prova
+  const [revSessao, setRevSessao] = useState(null);      // { id, nonce }
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
@@ -37,10 +40,10 @@ export default function App() {
   }, [toast]);
 
   useEffect(() => {
-    const travado = lesson || showStats || round;
+    const travado = lesson || showStats || round || revSessao;
     document.body.style.overflow = travado ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
-  }, [lesson, showStats, round]);
+  }, [lesson, showStats, round, revSessao]);
 
   // itens das tarefas já iniciadas: alimentam a revisão e marcam o texto bíblico
   const estudadosItens = useMemo(() => {
@@ -95,6 +98,20 @@ export default function App() {
           taskWasFull={wasFull}
           onFinish={finish}
           onQuit={() => { setLesson(null); if (window.speechSynthesis) window.speechSynthesis.cancel(); }}
+        />
+      </div>
+    );
+  }
+
+  if (revSessao) {
+    return (
+      <div className="app">
+        <RevisaoSessao
+          key={revSessao.nonce}
+          secao={revSessao.id}
+          onFinish={recordRevisao}
+          onAgain={() => setRevSessao({ id: revSessao.id, nonce: Date.now() })}
+          onQuit={() => setRevSessao(null)}
         />
       </div>
     );
@@ -157,9 +174,16 @@ export default function App() {
           : modulo ? (
             <Track state={state} moduleId={modulo} onStart={start}
                    onBack={() => setModulo(null)} toast={setToast} />
+          ) : revHub ? (
+            <RevisaoHub
+              rev={state.rev || {}}
+              onStart={(id) => { touchDay(); setRevSessao({ id, nonce: Date.now() }); }}
+              onBack={() => setRevHub(false)}
+            />
           ) : (
             <Home
               state={state}
+              onRevisao={() => { window.scrollTo(0, 0); setRevHub(true); }}
               onOpenModule={setModulo}
               onStart={start}
               onReview={startReview}
@@ -175,7 +199,7 @@ export default function App() {
 
       <nav className="three">
         <button className={tab === "trilha" ? "on" : ""}
-          onClick={() => { setTab("trilha"); setModulo(null); }}>
+          onClick={() => { setTab("trilha"); setModulo(null); setRevHub(false); }}>
           <span className="g">Α</span><span className="l">Estudar</span>
         </button>
         <button className={tab === "biblia" ? "on" : ""} onClick={() => setTab("biblia")}>

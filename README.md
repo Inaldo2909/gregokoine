@@ -124,6 +124,18 @@ As glosas em português cobrem os 300 lemas mais frequentes, que correspondem a
 - Marcas editoriais do aparato (⸀ ⸂) saíram da exibição; o losango de variante
   ganhou área de toque adequada.
 
+## Revisão para a prova — João 1:1-10
+
+O cartão "Revisão para a prova", no topo da aba Estudar, abre 18 seções de
+exercícios sobre a análise de João 1:1-10 enviada pelo professor: uma por
+versículo, sete por tema (regras, casos, preposições, verbos, αὐτός,
+vocabulário, tradução) e um simulado geral.
+
+O conteúdo fica em `src/revisaoJo1.js`: cada palavra do texto com a análise do
+professor, mais as perguntas de regra em `MANUAIS`. Os exercícios (múltipla
+escolha, tocar na palavra, montar a tradução) são gerados dali; a tela é
+`src/Revisao.jsx`. O melhor resultado de cada seção vai para `rev` no progresso.
+
 ## Pendência importante
 
 As 300 glosas em português, a tabela de pronúncia figurada e os 12 devocionais
